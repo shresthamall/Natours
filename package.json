@@ -4,13 +4,17 @@
   "description": "Course project - Backend application",
   "main": "server.js",
   "scripts": {
-    "start": "npx nodemon server.js"
+    "start:dev": "npx nodemon server.js",
+    "start:prod": "NODE_ENV=production npx nodemon server.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.4.5",
     "express": "^4.16.4",
     "http-status-codes": "^2.3.0",
+    "mongodb": "^6.8.1",
+    "mongoose": "^5.13.22",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
