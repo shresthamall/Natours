@@ -9,6 +9,9 @@ const router = new express.Router();
 
 // Mount routers
 router
+  .route('/top-5-cheap')
+  .get(tourController.topToursCheap, tourController.getAllTours);
+router
   .route('/')
   .get(tourController.getAllTours)
   .post(tourController.createTour);
