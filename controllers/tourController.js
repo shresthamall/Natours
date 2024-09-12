@@ -1,39 +1,71 @@
-const fs = require('fs');
 const { StatusCodes } = require('http-status-codes/build/cjs/status-codes.js');
 
-const tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
-);
-
-// Middleware - Check ID
-exports.checkID = function (req, res, next, val) {
-  // ID validation return if not, else move to next middleware
-  if (+val > tours.length) {
-    return res.end();
-  }
-  next();
-};
-
-exports.checkBody = function (req, res, next) {
-  // Body validation
-  if (!req.body.name || !req.body.price) {
-    return res
-      .status(400)
-      .json({ status: 'fail', message: 'Missing name and/or price' });
-  }
-  next();
-};
+const Tour = require('./../models/tourModel');
 
 // Handlers
-exports.getAllTours = function (req, res) {
-  (req, res) => {
-    res.json({ status: 'success', results: tours.length, data: { tours } });
-  };
+
+exports.createTour = async function (req, res) {
+  try {
+    const newTour = await Tour.create(req.body);
+
+    // Resolve connection - success
+    res.status(StatusCodes.CREATED).json({
+      status: 'success',
+      data: { tour: newTour },
+    });
+  } catch (err) {
+    // Resolve connection - failed
+    res.status(StatusCodes.BAD_REQUEST).json({
+      status: 'failed',
+      message: 'Invalid Data Sent!',
+    });
+  }
 };
-exports.getTour = function (req, res) {};
-exports.addTour = function (req, res) {
-  console.log(req.body);
-  res.end('Done');
+
+exports.getAllTours = async function (req, res) {
+  try {
+    const tours = await Tour.find();
+    res
+      .status(StatusCodes.OK)
+      .json({ status: 'success', results: tours.length, data: { tours } });
+  } catch (err) {
+    res.status(StatusCodes.NOT_FOUND).json({
+      status: 'failed',
+      message: 'Could not find any tours!',
+    });
+  }
 };
-exports.updateTour = function (req, res) {};
-exports.deleteTour = function (req, res) {};
+
+exports.getTour = async function (req, res) {
+  try {
+    const tour = await Tour.findById(req.params.id);
+    res.status(StatusCodes.OK).json({ status: 'success', data: { tour } });
+  } catch (err) {
+    res.status(StatusCodes.NOT_FOUND).json({
+      status: 'failed',
+      message: 'Could not find this tours!',
+    });
+  }
+};
+exports.updateTour = async function (req, res) {
+  try {
+    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    res.status(StatusCodes.OK).json({ status: 'success', data: { tour } });
+  } catch (err) {
+    res.status(StatusCodes.NOT_FOUND).json({
+      status: 'failed',
+      message: 'Could not find this tours!',
+    });
+  }
+};
+exports.deleteTour = async function (req, res) {
+  try {
+    await Tour.findByIdAndDelete(req.params.id);
+    res.status(StatusCodes.NO_CONTENT).json({});
+  } catch (err) {
+    res.status(StatusCodes.FORBIDDEN).json({});
+  }
+};
