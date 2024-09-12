@@ -8,6 +8,8 @@ const router = new express.Router();
 // router.param('id', tourController.checkID);
 
 // Mount routers
+router.route('/monthly-stats/:year').get(tourController.getMonthlyTours);
+router.route('/tour-stats').get(tourController.getTourStats);
 router
   .route('/top-5-cheap')
   .get(tourController.topToursCheap, tourController.getAllTours);
