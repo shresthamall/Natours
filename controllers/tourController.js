@@ -25,7 +25,7 @@ exports.createTour = async function (req, res) {
     // Resolve connection - failed
     res.status(StatusCodes.BAD_REQUEST).json({
       status: 'failed',
-      message: 'Invalid Data Sent!',
+      message: err,
     });
   }
 };
