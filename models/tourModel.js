@@ -1,6 +1,7 @@
 const { MongoCryptKMSRequestNetworkTimeoutError } = require('mongodb');
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const validator = require('validator');
 
 // Schema model for mongoose.Schema()
 const tourSchemaModel = {
@@ -9,6 +10,12 @@ const tourSchemaModel = {
     trim: true,
     required: [true, 'A tour must have a name.'],
     unique: true,
+    maxlength: [40, 'A tour name must have a maximum of 40 characters'],
+    minlength: [5, 'A tour name must have a minimum of 5 characters'],
+    // validate: [
+    //   validator.isAlpha,
+    //   'Name must only contain alphabetic characters',
+    // ],
   },
   slug: String,
   duration: {
@@ -22,10 +29,28 @@ const tourSchemaModel = {
   difficulty: {
     type: String,
     required: [true, 'A tour must have a difficulty'],
+    enum: {
+      values: ['easy', 'medium', 'difficult'],
+      message: 'Difficulty must be either: easy, medium or difficult',
+    },
   },
   price: { type: Number, required: [true, 'A tour must have a price.'] },
-  priceDiscount: Number,
-  ratingsAverage: { type: Number, default: 4.5 },
+  priceDiscount: {
+    type: Number,
+    validate: {
+      message: 'Discount prive ({VALUE}) should be lower than price',
+      validator: function (value) {
+        // this only points to current document on NEW document creation and not on update
+        return value < this.price;
+      },
+    },
+  },
+  ratingsAverage: {
+    type: Number,
+    default: 4.5,
+    min: [1, 'A rating must have a minimum value of 1.0'],
+    max: [5, 'A rating must have a maximum value of 5.0'],
+  },
   ratingsQuantity: { type: Number, default: 0 },
   summary: {
     type: String,
@@ -86,6 +111,13 @@ tourSchema.pre('save', function (next) {
 // tourSchema.pre('find', function (next) {
 tourSchema.pre(/^find/, function (next) {
   this.find({ $secretTour: { $ne: true } });
+  next();
+});
+
+// AGGREGATE MIDDLWARE:
+// this points to the aggregation object. .pipeline() returns the Pipeline Stage Array containging the aggregation criteria
+tourSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
   next();
 });
 
