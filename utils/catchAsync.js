@@ -16,4 +16,7 @@ foo1 === foo2
 */
 module.exports = (fn) => (req, res, next) =>
   //   fn(req, res, next).catch((err) => next(err));
-  fn(req, res, next).catch(next);
+  fn(req, res, next).catch((err) => {
+    console.error('CatchAsycn triggered', err);
+    return next(err);
+  });

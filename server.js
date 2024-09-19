@@ -1,6 +1,13 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
+const UNCAUGHT_EXCEPTION = 1;
+// Uncaught exception handler
+process.on('uncaughtException', (err) => {
+  console.log('Shutting down', err.message);
+  process.exit(UNCAUGHT_EXCEPTION);
+});
+
 // Define global env variables
 dotenv.config({ path: './config.env' });
 const app = require('./app');
@@ -20,6 +27,17 @@ mongoose
     console.log(err.message);
   });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`app running on port ${port}`);
+});
+
+// Unhandled exception handling - Log error message, close server and exit process
+// Deprecated!!!!
+process.on('unhandledRejection', (err) => {
+  server.close(() => {
+    console.error(`Unhandled exception: ${err} Shutting down...`);
+    // Set exitCode to be used when process exits
+    process.exitCode(UNCAUGHT_EXCEPTION);
+    throw err;
+  });
 });

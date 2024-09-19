@@ -110,7 +110,7 @@ tourSchema.pre('save', function (next) {
 // QUERY MIDDLEWARE: this points to the query
 // tourSchema.pre('find', function (next) {
 tourSchema.pre(/^find/, function (next) {
-  this.find({ $secretTour: { $ne: true } });
+  this.find({ secretTour: { $ne: true } });
   next();
 });
 

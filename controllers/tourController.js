@@ -42,10 +42,12 @@ exports.getTour = catchAsync(async function (req, res, next) {
   const id = req.params.id;
   const tour = await Tour.findById(id);
   // If valid ID but no document found
-  if (!tour)
+  if (!tour) {
+    console.log('tour undefined');
     return next(
       new AppError(`No tour was found with id: ${id}`, StatusCodes.NOT_FOUND)
     );
+  }
   // Send response
   res.status(StatusCodes.OK).json({ status: 'success', data: { tour } });
 });
@@ -55,6 +57,7 @@ exports.updateTour = catchAsync(async function (req, res, next) {
     new: true,
     runValidators: true,
   });
+  console.log('💥Tour: ', tour);
   // If valid ID but no document found
   if (!tour)
     return next(
