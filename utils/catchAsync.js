@@ -15,4 +15,5 @@ const foo2 = catchAsync(async function(x, y, z) {
 foo1 === foo2
 */
 module.exports = (fn) => (req, res, next) =>
-  fn(req, res, next).catch((err) => next(err));
+  //   fn(req, res, next).catch((err) => next(err));
+  fn(req, res, next).catch(next);

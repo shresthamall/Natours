@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
+// Define global env variables
 dotenv.config({ path: './config.env' });
 const app = require('./app');
 
+// Retrieve port and database api url
 const port = process.env.PORT || 3000;
 const DB = process.env.DATABASE.replace('<PASSWORD>', process.env.PASSWORD);
 

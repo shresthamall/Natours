@@ -8,6 +8,7 @@ const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 
+// Morgan logger - used while in development
 const app = express();
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
