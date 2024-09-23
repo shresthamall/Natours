@@ -18,12 +18,19 @@ if (process.env.NODE_ENV === 'development') {
 // Middleware: tells app to put received data in req.body argument for post function
 app.use(express.json());
 
+// Add timestamp for requst
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  // console.log(req.headers);
+  next();
+});
+
 // Add routers to app
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 
 // Router for invalid URL request
-app.all('*', (res, req, _) => {
+app.all('*', (req, res, next) => {
   next(
     `Cannot find "${req.originalURL}" on this server`,
     StatusCodes.NOT_FOUND

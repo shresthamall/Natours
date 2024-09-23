@@ -1,10 +1,9 @@
-const { StatusCodes } = require('http-status-codes/build/cjs/status-codes.js');
-
 const Tour = require('./../models/tourModel');
 const AppError = require('./../utils/appError');
 const APIFeatures = require('./../utils/apiFeatures');
 const catchAsync = require('./../utils/catchAsync');
 
+const { StatusCodes } = require('http-status-codes/build/cjs/status-codes.js');
 // Handlers
 
 exports.topToursCheap = function (req, _, next) {

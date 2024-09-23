@@ -18,6 +18,7 @@ const sendErrorDev = (res, err) => {
 const sendErrProd = (res, err) => {
   console.log('Logging error from production');
   if (err.isOperational) {
+    console.log('prod:isOperational/////', err);
     return res.status(err.statusCode).json({
       status: err.status,
       message: err.message,
@@ -33,24 +34,37 @@ const sendErrProd = (res, err) => {
 };
 
 const handleCastErrorDB = (err) => {
+  console.log('handleCastErrorDB');
   const message = `Invalid ${err.path}: ${err.value}`;
   return new APPError(message, StatusCodes.BAD_REQUEST);
 };
 
 const handleDuplicateKeyDB = (err) => {
+  console.log('handleDuplicateKeyDB');
   // TODO: add /"${err.keyValue.name}/" below
   const message = `Duplicate field value: ${err.keyValue.name}. Please use another value!`;
   return new APPError(message, StatusCodes.BAD_REQUEST);
 };
 
 const handleValidationErrorDB = (err) => {
+  console.log('handleValidationErrorDB');
   const errors = Object.values(err.errors).map((err) => err.message);
   const message = `Invalid input data. ${errors.join('. ')}`;
   return new APPError(message, StatusCodes.BAD_REQUEST);
 };
 
+const handlerJWTError = () =>
+  new APPError(`Invalid token, please log in again!`, StatusCodes.UNAUTHORIZED);
+
+const handlerJWTExpiredError = () =>
+  new APPError(
+    'Your token has expired, please login again!',
+    StatusCodes.UNAUTHORIZED
+  );
+
 module.exports = (err, req, res, next) => {
   let error = { ...err };
+  console.log(error);
   error.statusCode = error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
   error.status = err.status || 'error';
   // Operational, trusted error: send message to client
@@ -63,5 +77,7 @@ module.exports = (err, req, res, next) => {
   if (error.code === 11000) error = handleDuplicateKeyDB(error);
   if (error._message === 'Validation failed')
     error = handleValidationErrorDB(error);
+  if (error.name === 'JsonWebTokenError') error = handlerJWTError();
+  if (error.name === 'ExpiredTokenError') error = handlerJWTExpiredError();
   if (process.env.NODE_ENV === 'production') return sendErrProd(res, error);
 };

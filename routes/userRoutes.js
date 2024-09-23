@@ -9,6 +9,9 @@ const router = new express.Router();
 // Signup user
 router.post('/signup', authController.signup);
 
+// Login user
+router.post('/login', authController.login);
+
 // Mount routers
 router
   .route('/')

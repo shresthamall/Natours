@@ -20,10 +20,16 @@ const userSchemaModel = {
   photo: {
     type: String,
   },
+  role: {
+    type: String,
+    enum: ['user', 'guide', 'lead-guide', 'admin'],
+    default: 'user',
+  },
   password: {
     type: String,
     required: [true, 'A user must have a password!'],
     minlength: 8,
+    select: false,
   },
   passwordConfirm: {
     type: String,
@@ -36,6 +42,7 @@ const userSchemaModel = {
       message: 'Passwords do not match!',
     },
   },
+  passwordChangedAt: Date,
 };
 
 const userSchema = mongoose.Schema(userSchemaModel);
@@ -50,6 +57,26 @@ userSchema.pre('save', async function (next) {
   this.passwordConfirm = undefined;
   next();
 });
+
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  const lastPasswordChangeAt = this.passwordChangedAt;
+  // Return false if password has never been changed
+  if (!lastPasswordChangeAt) return false;
+
+  const passwordChangedTimestamp = parseInt(
+    lastPasswordChangeAt.getTime() / 1000,
+    10
+  );
+  // Check if JWT is older than previous password change timestamp
+  return JWTTimestamp < passwordChangedTimestamp;
+};
 
 const User = mongoose.model('User', userSchema);
 
