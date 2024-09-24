@@ -6,7 +6,7 @@ const { StatusCodes } = require('http-status-codes');
 const APPError = require('../utils/appError');
 
 const sendErrorDev = (res, err) => {
-  console.log('Logging error from development');
+  console.log('Logging error from development', err);
   res.status(err.statusCode).json({
     status: err.status,
     message: err.message,
@@ -64,7 +64,6 @@ const handlerJWTExpiredError = () =>
 
 module.exports = (err, req, res, next) => {
   let error = { ...err };
-  console.log(error);
   error.statusCode = error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
   error.status = err.status || 'error';
   // Operational, trusted error: send message to client

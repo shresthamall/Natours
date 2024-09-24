@@ -1,9 +1,11 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { promisify } = require('util');
 const { StatusCodes } = require('http-status-codes');
 const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const APPError = require('./../utils/appError');
+const sendEmail = require('./../utils/email');
 
 // Sign token and return new token
 const signToken = (id) => {
@@ -15,6 +17,19 @@ const signToken = (id) => {
 // Verify JWT, promisify and return promise
 const verify = (token) => {
   return promisify(jwt.verify)(token, process.env.JWT_SECRET);
+};
+
+// Create password reset url to be sent to user via email
+const createPasswordResetURL = (req, resetToken) => {
+  return `${req.protocol}://${req.get(
+    'host'
+  )}/api/v1/users/resetPassword/${resetToken}`;
+};
+
+// Create password reset message to be sent to user via email
+const createPasswordResetMessage = (resetURL) => {
+  return `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}. 
+    If you didn't forget your password, please ignore this email!`;
 };
 
 exports.signup = catchAsync(async function (req, res, next) {
@@ -71,7 +86,7 @@ exports.login = catchAsync(async function (req, res, next) {
   });
 });
 
-// Authenticate user login
+// Middleware: Authenticate user login
 exports.protect = catchAsync(async function (req, res, next) {
   let token;
   const { headers } = req;
@@ -111,6 +126,7 @@ exports.protect = catchAsync(async function (req, res, next) {
   next();
 });
 
+// Middleware: Restrict access to users with specified roles
 exports.restrictTo = function (...roles) {
   return (req, res, next) => {
     // req.user is set in protect() above
@@ -124,3 +140,85 @@ exports.restrictTo = function (...roles) {
     next();
   };
 };
+
+exports.forgotPassword = catchAsync(async function (req, res, next) {
+  // 1) Get the user based on POSTed email
+  const user = await User.findOne({ email: req.body.email });
+  console.log('user found: ', user);
+  if (!user)
+    return next(
+      new APPError('No user was found with that email', StatusCodes.NOT_FOUND)
+    );
+  // 2) Create a password reset token
+
+  const resetToken = user.createPasswordResetToken();
+  console.log('resetToken: ', resetToken);
+  // Save the file but not run validators: Email and password are not provided
+  await user.save({ validateBeforeSave: false });
+
+  console.log('document saved');
+
+  // 3) Send token back to user
+  const resetURL = createPasswordResetURL(req, resetToken);
+
+  const message = createPasswordResetMessage(resetURL);
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Your password reset token (valid for next 10 minutes)',
+      text: message,
+    });
+
+    res.status(StatusCodes.OK).json({
+      status: 'success',
+      message: 'Password reset token sent to email.',
+    });
+  } catch (err) {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    return next(
+      new APPError(
+        'There was an error sending the email. Try again later!',
+        StatusCodes.INTERNAL_SERVER_ERROR
+      )
+    );
+  }
+});
+
+exports.resetPassword = catchAsync(async function (req, res, next) {
+  // 1) Get user based on token
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  // 2) If token has not expired, and there is user, set the new password
+  if (!user)
+    return next(
+      new APPError('Token is invalid or has expired', StatusCodes.BAD_REQUEST)
+    );
+
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  // 3) Update passwordChangedAt property for the user
+
+  // 4)Log the user in and JWT
+  const token = signToken(user._id);
+  res.status(StatusCodes.OK).json({
+    status: 'success',
+    token,
+  });
+});
+// 0f9b1264f66f03fb44362b005ea2dac0d99117f9432e8be87297dcad3273cf4a

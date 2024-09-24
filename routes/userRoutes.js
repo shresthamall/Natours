@@ -12,6 +12,10 @@ router.post('/signup', authController.signup);
 // Login user
 router.post('/login', authController.login);
 
+// Resetting password
+router.post('/forgotPassword', authController.forgotPassword);
+router.patch('/resetPassword/:token', authController.resetPassword);
+
 // Mount routers
 router
   .route('/')
