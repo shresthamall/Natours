@@ -32,6 +32,61 @@ const createPasswordResetMessage = (resetURL) => {
     If you didn't forget your password, please ignore this email!`;
 };
 
+// Middleware: Authenticate user login
+exports.protect = catchAsync(async function (req, res, next) {
+  let token;
+  const { headers } = req;
+  // 1) Get token and check if it exists
+  if (!headers.authorization || !headers.authorization.startsWith('Bearer'))
+    return next(
+      new APPError(
+        'You are not logged in, please login to access this resource!',
+        StatusCodes.UNAUTHORIZED
+      )
+    );
+
+  token = headers.authorization.split(' ')[1];
+
+  // 2) Validate the token - Verification
+  const decodedToken = await verify(token);
+  //   console.log(decodedToken);
+  // 3) Check if user still exists
+  const currentUser = await User.findById(decodedToken.id);
+  if (!currentUser)
+    return next(
+      new APPError(
+        'This user belonging to this token no longer exists!',
+        StatusCodes.UNAUTHORIZED
+      )
+    );
+  // 4) Check if user changed password after token was issued
+  if (currentUser.changedPasswordAfter(decodedToken.iat))
+    return next(
+      new APPError(
+        'User has recemtly changed password, please login again!',
+        StatusCodes.UNAUTHORIZED
+      )
+    );
+  // 5) Grant access to protected route
+  req.user = currentUser;
+  next();
+});
+
+// Middleware: Restrict access to users with specified roles
+exports.restrictTo = function (...roles) {
+  return (req, res, next) => {
+    // req.user is set in protect() above
+    if (!roles.includes(req.user.role))
+      return next(
+        new APPError(
+          'You do not have permission to perform this action.',
+          StatusCodes.FORBIDDEN
+        )
+      );
+    next();
+  };
+};
+
 exports.signup = catchAsync(async function (req, res, next) {
   const newUser = await User.create({
     name: req.body.name,
@@ -85,61 +140,6 @@ exports.login = catchAsync(async function (req, res, next) {
     token,
   });
 });
-
-// Middleware: Authenticate user login
-exports.protect = catchAsync(async function (req, res, next) {
-  let token;
-  const { headers } = req;
-  // 1) Get token and check if it exists
-  if (!headers.authorization || !headers.authorization.startsWith('Bearer'))
-    return next(
-      new APPError(
-        'You are not logged in, please login to access this resource!',
-        StatusCodes.UNAUTHORIZED
-      )
-    );
-
-  token = headers.authorization.split(' ')[1];
-
-  // 2) Validate the token - Verification
-  const decoded = await verify(token);
-  //   console.log(decoded);
-  // 3) Check if user still exists
-  const currentUser = await User.findById(decoded.id);
-  if (!currentUser)
-    return next(
-      new APPError(
-        'This user belonging to this token no longer exists!',
-        StatusCodes.UNAUTHORIZED
-      )
-    );
-  // 4) Check if user changed password after token was issued
-  if (currentUser.changedPasswordAfter(decoded.iat))
-    return next(
-      new APPError(
-        'User has recemtly changed password, please login again!',
-        StatusCodes.UNAUTHORIZED
-      )
-    );
-  // 5) Grant access to protected route
-  req.user = currentUser;
-  next();
-});
-
-// Middleware: Restrict access to users with specified roles
-exports.restrictTo = function (...roles) {
-  return (req, res, next) => {
-    // req.user is set in protect() above
-    if (!roles.includes(req.user.role))
-      return next(
-        new APPError(
-          'You do not have permission to perform this action.',
-          StatusCodes.FORBIDDEN
-        )
-      );
-    next();
-  };
-};
 
 exports.forgotPassword = catchAsync(async function (req, res, next) {
   // 1) Get the user based on POSTed email
@@ -222,3 +222,33 @@ exports.resetPassword = catchAsync(async function (req, res, next) {
   });
 });
 // 0f9b1264f66f03fb44362b005ea2dac0d99117f9432e8be87297dcad3273cf4a
+
+exports.updatePassword = catchAsync(async function (req, res, next) {
+  //  1) Get user from collection
+  const user = await User.findById(req.user.id).select('+password');
+  if (!user)
+    return next(
+      new APPError(
+        'Could not find you! Please log in again!',
+        StatusCodes.UNAUTHORIZED
+      )
+    );
+  // 2) Check if POSTed password is correct
+  if (!user.correctPassword(req.body.passwordCurrent, user.password))
+    return next(
+      new APPError(
+        'Current password provided is incorrect! Please try again!',
+        StatusCodes.UNAUTHORIZED
+      )
+    );
+  // 3) Update password is correct
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save();
+  // 4) Log user in, send JWT
+  const token = signToken(user._id);
+  res.status(StatusCodes.OK).json({
+    status: 'success',
+    token,
+  });
+});

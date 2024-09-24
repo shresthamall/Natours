@@ -16,6 +16,16 @@ router.post('/login', authController.login);
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
 
+// Updating current logged in user's password
+router.patch(
+  '/updateMyPassword',
+  authController.protect,
+  authController.updatePassword
+);
+
+// Updating current logged in user's data
+router.patch('/updateMe', authController.protect, userController.updateMe);
+
 // Mount routers
 router
   .route('/')
