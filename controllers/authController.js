@@ -32,6 +32,34 @@ const createPasswordResetMessage = (resetURL) => {
     If you didn't forget your password, please ignore this email!`;
 };
 
+// Create and send token as output
+const createSendToken = (user, res) => {
+  // Create JWT
+  const token = signToken(user._id);
+
+  // Define cookie options
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+  };
+
+  // Use secure connection when in production
+  if (process.env.NODE_ENV === 'production') cookieOptions.secret = true;
+
+  // Set cookie value and options to be sent
+  res.cookie('jwt', token, cookieOptions);
+
+  // Send response
+  res.status(StatusCodes.CREATED).json({
+    status: 'success',
+    token,
+    data: {
+      user,
+    },
+  });
+};
 // Middleware: Authenticate user login
 exports.protect = catchAsync(async function (req, res, next) {
   let token;
@@ -97,17 +125,8 @@ exports.signup = catchAsync(async function (req, res, next) {
     role: req.body.role,
   });
 
-  // Create JWT
-  const token = signToken(newUser._id);
-
-  // send response
-  res.status(StatusCodes.CREATED).json({
-    status: 'success',
-    token,
-    data: {
-      user: newUser,
-    },
-  });
+  // Send response
+  createSendToken(newUser, res);
 });
 
 exports.login = catchAsync(async function (req, res, next) {
@@ -134,11 +153,8 @@ exports.login = catchAsync(async function (req, res, next) {
   }
 
   // 3) If everything is ok, send token
-  const token = signToken(user._id);
-  res.status(StatusCodes.OK).json({
-    status: 'success',
-    token,
-  });
+  // Send response
+  createSendToken(user, res);
 });
 
 exports.forgotPassword = catchAsync(async function (req, res, next) {
@@ -215,11 +231,7 @@ exports.resetPassword = catchAsync(async function (req, res, next) {
   // 3) Update passwordChangedAt property for the user
 
   // 4)Log the user in and JWT
-  const token = signToken(user._id);
-  res.status(StatusCodes.OK).json({
-    status: 'success',
-    token,
-  });
+  createSendToken(user, res);
 });
 // 0f9b1264f66f03fb44362b005ea2dac0d99117f9432e8be87297dcad3273cf4a
 
@@ -246,9 +258,5 @@ exports.updatePassword = catchAsync(async function (req, res, next) {
   user.passwordConfirm = req.body.passwordConfirm;
   await user.save();
   // 4) Log user in, send JWT
-  const token = signToken(user._id);
-  res.status(StatusCodes.OK).json({
-    status: 'success',
-    token,
-  });
+  createSendToken(user, res);
 });

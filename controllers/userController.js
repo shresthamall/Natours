@@ -50,6 +50,14 @@ exports.updateMe = catchAsync(async function (req, res, next) {
     },
   });
 });
+
+exports.deleteMe = catchAsync(async function (req, res, next) {
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+
+  res.status(StatusCodes.NO_CONTENT).json({
+    status: 'success',
+  });
+});
 exports.getUser = function (req, res, next) {};
 exports.createUser = function (req, res, next) {};
 exports.updateUser = function (req, res, next) {};

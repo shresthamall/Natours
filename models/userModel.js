@@ -45,9 +45,20 @@ const userSchemaModel = {
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 };
 
 const userSchema = mongoose.Schema(userSchemaModel);
+
+// Limit inactive users from being shown in results
+userSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } });
+  next();
+});
 
 // Encrypt password before saving it to DB each time a password is changed
 userSchema.pre('save', async function (next) {

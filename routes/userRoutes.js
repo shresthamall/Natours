@@ -26,6 +26,9 @@ router.patch(
 // Updating current logged in user's data
 router.patch('/updateMe', authController.protect, userController.updateMe);
 
+// Delete current user
+router.delete('/deleteMe', authController.protect, userController.deleteMe);
+
 // Mount routers
 router
   .route('/')
