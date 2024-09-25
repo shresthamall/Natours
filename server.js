@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
-const UNCAUGHT_EXCEPTION = 1;
+const UNCAUGHT_EXCEPTION_CODE = 1;
 // Uncaught exception handler
 process.on('uncaughtException', (err) => {
   console.log('Shutting down', err.message);
-  process.exit(UNCAUGHT_EXCEPTION);
+  process.exit(UNCAUGHT_EXCEPTION_CODE);
 });
 
 // Define global env variables
