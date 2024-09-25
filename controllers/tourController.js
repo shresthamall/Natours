@@ -39,6 +39,7 @@ exports.getAllTours = catchAsync(async function (req, res, next) {
 
 exports.getTour = catchAsync(async function (req, res, next) {
   const id = req.params.id;
+
   const tour = await Tour.findById(id);
   // If valid ID but no document found
   if (!tour) {

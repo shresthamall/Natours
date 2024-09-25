@@ -51,6 +51,10 @@ const userSchemaModel = {
     select: false,
   },
 };
+/* 
+// List of fields to be selected while populating a normalized document get query
+const selectUserFields = ['name', 'role', 'email', 'photo'];
+ */
 
 const userSchema = mongoose.Schema(userSchemaModel);
 
@@ -101,7 +105,7 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   // Check if JWT is older than previous password change timestamp
   return JWTTimestamp < passwordChangedTimestamp;
 };
-
+/* 
 // Creates a password reset token
 userSchema.methods.createPasswordResetToken = function () {
   console.log('entered createPasswordResetToken');
@@ -124,6 +128,11 @@ userSchema.methods.createPasswordResetToken = function () {
 
   // Return unencrypted token back to user
   return resetToken;
+};
+ */
+// Return string of fields to be selected for embedded users
+userSchema.methods.getSelectedFields = function () {
+  return selectUserFields.join(' ');
 };
 
 const User = mongoose.model('User', userSchema);

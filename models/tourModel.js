@@ -1,6 +1,7 @@
 const { MongoCryptKMSRequestNetworkTimeoutError } = require('mongodb');
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+// const User = require('./userModel');
 // const validator = require('validator');
 
 // Schema model for mongoose.Schema()
@@ -76,6 +77,39 @@ const tourSchemaModel = {
     type: Boolean,
     default: false,
   },
+  // Locations embedded/de-normalized into tours model
+  startLocation: {
+    // GeoJSON
+    type: {
+      type: String,
+      // Geometry
+      default: 'Point',
+      enum: ['Point'],
+    },
+    coordinates: [Number],
+    address: String,
+    description: String,
+  },
+  locations: [
+    {
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+      day: Number,
+    },
+  ],
+  // Guides
+  guides: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+    },
+  ],
 };
 
 // Schema options
@@ -100,6 +134,15 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
+/* 
+// Embedding User data into Tour Model *** Decided to use referencing instead: Normalization
+tourSchema.pre('save', async function (next) {
+  const guidesPromises = this.guides.map((id) => User.findById(id));
+  this.guides = await Promise.all(guidesPromises);
+  next();
+});
+ */
+
 // // Document middleware: runs after .save() and .create()
 // // Gets access to the saved document
 // tourSchema.post('save', function (doc, next) {
@@ -108,9 +151,18 @@ tourSchema.pre('save', function (next) {
 // });
 
 // QUERY MIDDLEWARE: this points to the query
-// tourSchema.pre('find', function (next) {
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
+  next();
+});
+
+// Populate the referenced guides:User in the result
+tourSchema.pre(/^find/, function (next) {
+  const selectUserFields = ['name', 'role', 'email', 'photo'];
+  this.populate({
+    path: 'guides',
+    select: `${selectUserFields.join(' ')}`,
+  });
   next();
 });
 
