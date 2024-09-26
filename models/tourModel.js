@@ -126,6 +126,13 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+// Virtual populate tours with reviews
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
+});
+
 // Middlewares - Mongoose
 // DOCUMENT MIDDLEWARE: runs before .save() and .create() and not on .insertMany(): this points to document being saved
 // Creating a slug for each tour being saved - for use in URL
@@ -162,6 +169,15 @@ tourSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'guides',
     select: `${selectUserFields.join(' ')}`,
+  });
+  next();
+});
+
+// Virtual populate
+tourSchema.pre('findOne', function (next) {
+  this.populate({
+    path: 'reviews',
+    select: '-__v',
   });
   next();
 });
