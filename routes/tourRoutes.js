@@ -1,14 +1,16 @@
 const express = require('express');
 const tourController = require('./../controllers/tourController');
 const authController = require('./../controllers/authController');
+const reviewRouter = require('./../routes/reviewRoutes');
 
 // Create tourRouter
 const router = new express.Router();
 
-// ID validation
-// router.param('id', tourController.checkID);
-
 // Mount routers
+// Nested routes:
+router.use('/:tourId/reviews', reviewRouter);
+
+// Tour routes
 router.route('/monthly-stats/:year').get(tourController.getMonthlyTours);
 router.route('/tour-stats').get(tourController.getTourStats);
 router

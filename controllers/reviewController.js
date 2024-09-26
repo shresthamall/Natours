@@ -7,14 +7,10 @@ const catchAsync = require('../utils/catchAsync');
 
 // Post Review
 exports.createReview = catchAsync(async function (req, res, next) {
-  //   //  Get the user document/ID
-  //   const userId = req.body.user;
+  // Allow nested routes
+  if (!req.body.tour) req.body.tour = req.params.tourId;
+  if (!req.body.user) req.body.user = req.user.id;
 
-  //   //  Get the tour ID
-  //   const tourId = req.body.tour;
-
-  //     //  Get review data
-  //     const reviewData
   const review = await Review.create(req.body);
 
   if (!review)
@@ -31,7 +27,11 @@ exports.createReview = catchAsync(async function (req, res, next) {
 });
 
 exports.getAllReviews = catchAsync(async function (req, res, next) {
-  const reviews = await Review.find();
+  const tour = {};
+  req.params.tourId ? (tour.tour = req.params.tourId) : '';
+  //   const { tourId } = req.params;
+  //   const reviews = await Review.find(tourId ? { tour: tourId } : {});
+  const reviews = await Review.find(tour);
 
   if (!reviews)
     return next(
