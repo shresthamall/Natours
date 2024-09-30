@@ -3,6 +3,7 @@ const AppError = require('./../utils/appError');
 const APIFeatures = require('./../utils/apiFeatures');
 const catchAsync = require('./../utils/catchAsync');
 const { StatusCodes } = require('http-status-codes');
+const factory = require('./handlerFactory');
 
 // Helper functions
 const filterObj = (obj, ...allowedFields) => {
@@ -58,7 +59,13 @@ exports.deleteMe = catchAsync(async function (req, res, next) {
     status: 'success',
   });
 });
+
 exports.getUser = function (req, res, next) {};
 exports.createUser = function (req, res, next) {};
-exports.updateUser = function (req, res, next) {};
-exports.deleteUser = function (req, res, next) {};
+
+// Reserved for users with 'admin' roles
+
+// DO NOT USE THIS TO UPDATE PASSWORDS, WILL NOT RUN SAFETY MIDDLEWARES
+exports.updateUser = factory.updateOne(User);
+// WILL DELETE USER FROM DB
+exports.deleteUser = factory.deleteOne(User);

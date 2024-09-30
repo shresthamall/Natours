@@ -16,6 +16,10 @@ const reviewSchemaModel = {
     type: Date,
     default: Date.now,
   },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
   tour: {
     type: mongoose.Schema.ObjectId,
     ref: 'Tour',

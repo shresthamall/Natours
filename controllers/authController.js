@@ -60,6 +60,7 @@ const createSendToken = (user, res) => {
     },
   });
 };
+
 // Middleware: Authenticate user login
 exports.protect = catchAsync(async function (req, res, next) {
   let token;
