@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
@@ -13,12 +14,16 @@ const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 
-//// GLOBAL MIDDLEWARES:
 // Express application
 const app = express();
 
-// Set Template Engine
+// Set PUG Template Engine
 app.set('view engine', 'pug');
+app.set('view', path.join(__dirname, 'views'));
+
+//// GLOBAL MIDDLEWARE FUNCTIONS
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Set security HTTP headers
 app.use(helmet());
@@ -28,8 +33,6 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
   console.log('using morgan - in development');
 }
-
-// GLOBAL MIDDLEWARE FUNCTIONS
 
 const limiter = rateLimit({
   max: 100,
@@ -64,9 +67,6 @@ app.use(
     whitelist: whiteListedParams,
   })
 );
-
-// Serving static files
-app.use(express.static(`${__dirname}/public`));
 
 // Add timestamp for request
 app.use((req, res, next) => {
