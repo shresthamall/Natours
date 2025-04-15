@@ -6,24 +6,41 @@ const reviewRouter = require('./../routes/reviewRoutes');
 // Create tourRouter
 const router = new express.Router();
 
-// Mount routers
+////// Mount routers
 // Nested routes:
 router.use('/:tourId/reviews', reviewRouter);
 
-// Tour routes
-router.route('/monthly-stats/:year').get(tourController.getMonthlyTours);
+//// Tour routes
+// Special endpoints
 router.route('/tour-stats').get(tourController.getTourStats);
 router
   .route('/top-5-cheap')
   .get(tourController.topToursCheap, tourController.getAllTours);
 router
+  .route('/monthly-stats/:year')
+  .get(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide', 'guide'),
+    tourController.getMonthlyTours
+  );
+// Root
+router
   .route('/')
-  .get(authController.protect, tourController.getAllTours)
-  .post(tourController.createTour);
+  .get(tourController.getAllTours)
+  .post(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.createTour
+  );
+// Specific tour
 router
   .route('/:id')
   .get(tourController.getTour)
-  .patch(tourController.updateTour)
+  .patch(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.updateTour
+  )
   .delete(
     authController.protect,
     authController.restrictTo('admin', 'lead-guide'),

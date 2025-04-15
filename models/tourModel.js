@@ -76,6 +76,7 @@ const tourSchemaModel = {
   secretTour: {
     type: Boolean,
     default: false,
+    select: false,
   },
   // Locations embedded/de-normalized into tours model
   startLocation: {
@@ -90,6 +91,7 @@ const tourSchemaModel = {
     address: String,
     description: String,
   },
+  // Embedding location documents inside tour documents => [{*GeoJSON}] => Using array lets mongoose know that this is an embedded document
   locations: [
     {
       type: {
@@ -120,6 +122,12 @@ const tourSchemaOptions = {
 
 // Create a schema for tour collection(mongoDB)
 const tourSchema = new mongoose.Schema(tourSchemaModel, tourSchemaOptions);
+
+//// Add Indexes for the most queried fields
+// Compound index for price and ratingsAverage
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+// Index for the slud => Is unique and will be used to query for tours
+tourSchema.index({ slug: 1 });
 
 // Add virtual properties to a schema
 tourSchema.virtual('durationWeeks').get(function () {
@@ -173,14 +181,14 @@ tourSchema.pre(/^find/, function (next) {
   next();
 });
 
-// Virtual populate
-tourSchema.pre('findOne', function (next) {
-  this.populate({
-    path: 'reviews',
-    select: '-__v',
-  });
-  next();
-});
+// // Virtual populate
+// tourSchema.pre('findById', function (next) {
+//   this.populate({
+//     path: 'reviews',
+//     select: '-__v',
+//   });
+//   next();
+// });
 
 // AGGREGATE MIDDLWARE:
 // this points to the aggregation object. .pipeline() returns the Pipeline Stage Array containging the aggregation criteria

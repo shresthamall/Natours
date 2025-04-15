@@ -51,6 +51,9 @@ const createSendToken = (user, res) => {
   // Set cookie value and options to be sent
   res.cookie('jwt', token, cookieOptions);
 
+  // Remove password from response
+  user.password = undefined;
+
   // Send response
   res.status(StatusCodes.CREATED).json({
     status: 'success',
@@ -61,68 +64,15 @@ const createSendToken = (user, res) => {
   });
 };
 
-// Middleware: Authenticate user login
-exports.protect = catchAsync(async function (req, res, next) {
-  let token;
-  const { headers } = req;
-  // 1) Get token and check if it exists
-  if (!headers.authorization || !headers.authorization.startsWith('Bearer'))
-    return next(
-      new APPError(
-        'You are not logged in, please login to access this resource!',
-        StatusCodes.UNAUTHORIZED
-      )
-    );
-
-  token = headers.authorization.split(' ')[1];
-
-  // 2) Validate the token - Verification
-  const decodedToken = await verify(token);
-  //   console.log(decodedToken);
-  // 3) Check if user still exists
-  const currentUser = await User.findById(decodedToken.id);
-  if (!currentUser)
-    return next(
-      new APPError(
-        'This user belonging to this token no longer exists!',
-        StatusCodes.UNAUTHORIZED
-      )
-    );
-  // 4) Check if user changed password after token was issued
-  if (currentUser.changedPasswordAfter(decodedToken.iat))
-    return next(
-      new APPError(
-        'User has recemtly changed password, please login again!',
-        StatusCodes.UNAUTHORIZED
-      )
-    );
-  // 5) Grant access to protected route
-  req.user = currentUser;
-  next();
-});
-
-// Middleware: Restrict access to users with specified roles
-exports.restrictTo = function (...roles) {
-  return (req, res, next) => {
-    // req.user is set in protect() above
-    if (!roles.includes(req.user.role))
-      return next(
-        new APPError(
-          'You do not have permission to perform this action.',
-          StatusCodes.FORBIDDEN
-        )
-      );
-    next();
-  };
-};
-
+//// Exports
 exports.signup = catchAsync(async function (req, res, next) {
+  // Note: We do not assign all incoming data in req.body to creating a new user so as to prevent users from registering as an admin upfront.
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
-    // TODO: passwordChangedAt: req.body.passwordChangedAt,
+    // TODO: Check this
     role: req.body.role,
   });
 
@@ -145,6 +95,7 @@ exports.login = catchAsync(async function (req, res, next) {
   // .select('+password'): use + before field name to select a field that is not selected by default
   const user = await User.findOne({ email }).select('+password');
   // user.password is the hashed password saved in DB and password is user input password actual
+  // !user also protects against the case when the user !exists, as user.password would then throw an error. || protects/short-circuits
   if (!user || !(await user.correctPassword(password, user.password))) {
     const error = new APPError(
       'Incorrect email or password',
@@ -166,8 +117,8 @@ exports.forgotPassword = catchAsync(async function (req, res, next) {
     return next(
       new APPError('No user was found with that email', StatusCodes.NOT_FOUND)
     );
-  // 2) Create a password reset token
 
+  // 2) Create a password reset token
   const resetToken = user.createPasswordResetToken();
   console.log('resetToken: ', resetToken);
   // Save the file but not run validators: Email and password are not provided
@@ -180,6 +131,7 @@ exports.forgotPassword = catchAsync(async function (req, res, next) {
 
   const message = createPasswordResetMessage(resetURL);
 
+  // Catch error here first then throw to globalErrorHandler -> On error, we must reset the passwordResetToken & passwordResetExpires
   try {
     await sendEmail({
       email: user.email,
@@ -247,7 +199,7 @@ exports.updatePassword = catchAsync(async function (req, res, next) {
       )
     );
   // 2) Check if POSTed password is correct
-  if (!user.correctPassword(req.body.passwordCurrent, user.password))
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password)))
     return next(
       new APPError(
         'Current password provided is incorrect! Please try again!',
@@ -261,3 +213,59 @@ exports.updatePassword = catchAsync(async function (req, res, next) {
   // 4) Log user in, send JWT
   createSendToken(user, res);
 });
+
+// Middleware: Authenticate user login
+exports.protect = catchAsync(async function (req, res, next) {
+  let token;
+  const { headers } = req;
+  // 1) Get token and check if it exists
+  if (!headers.authorization || !headers.authorization.startsWith('Bearer'))
+    return next(
+      new APPError(
+        'You are not logged in, please login to access this resource!',
+        StatusCodes.UNAUTHORIZED
+      )
+    );
+
+  token = headers.authorization.split(' ')[1];
+
+  // 2) Validate the token - Verification
+  const decodedToken = await verify(token);
+  //   console.log(decodedToken);
+  // 3) Check if user still exists
+  // TODO: Add check for inactive users that have deactivated their account
+  const currentUser = await User.findById(decodedToken.id);
+  if (!currentUser)
+    return next(
+      new APPError(
+        'This user belonging to this token no longer exists!',
+        StatusCodes.UNAUTHORIZED
+      )
+    );
+  // 4) Check if user changed password after token was issued
+  if (currentUser.changedPasswordAfterJWTIssued(decodedToken.iat))
+    return next(
+      new APPError(
+        'User has recently changed password, please login again!',
+        StatusCodes.UNAUTHORIZED
+      )
+    );
+  // 5) Grant access to protected route
+  req.user = currentUser;
+  next();
+});
+
+// Middleware: Restrict access to users with specified roles
+exports.restrictTo = function (...roles) {
+  return (req, res, next) => {
+    // req.user is set in protect() above
+    if (!roles.includes(req.user.role))
+      return next(
+        new APPError(
+          'You do not have permission to perform this action.',
+          StatusCodes.FORBIDDEN
+        )
+      );
+    next();
+  };
+};

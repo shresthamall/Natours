@@ -10,6 +10,7 @@ process.on('uncaughtException', (err) => {
 
 // Define global env variables
 dotenv.config({ path: './config.env' });
+// Load custom env variables before loading the app
 const app = require('./app');
 
 // Retrieve port and database api url
@@ -27,17 +28,18 @@ mongoose
     console.log(err.message);
   });
 
+// Server
 const server = app.listen(port, () => {
   console.log(`app running on port ${port}`);
 });
 
-// Unhandled exception handling - Log error message, close server and exit process
+// Global Unhandled exception handling - Log error message, close server and exit process
 // Deprecated!!!!
 process.on('unhandledRejection', (err) => {
   server.close(() => {
     console.error(`Unhandled exception: ${err} Shutting down...`);
     // Set exitCode to be used when process exits
-    process.exitCode(UNCAUGHT_EXCEPTION);
+    process.exitCode = UNCAUGHT_EXCEPTION_CODE;
     throw err;
   });
 });

@@ -4,50 +4,42 @@ const APPError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const factory = require('./handlerFactory');
 
-// Get Reviews
+// exports.getAllReviews = catchAsync(async function (req, res, next) {
+//   const tour = {};
+//   req.params.tourId ? (tour.tour = req.params.tourId) : '';
+//   //   const { tourId } = req.params;
+//   //   const reviews = await Review.find(tourId ? { tour: tourId } : {});
+//   const reviews = await Review.find(tour);
 
-// Post Review
-exports.createReview = factory.createOne(Review);
-// exports.createReview = catchAsync(async function (req, res, next) {
-//   // Allow nested routes
-//   if (!req.body.tour) req.body.tour = req.params.tourId;
-//   if (!req.body.user) req.body.user = req.user.id;
-
-//   const review = await Review.create(req.body);
-
-//   if (!review)
+//   if (!reviews)
 //     return next(
-//       new APPError('Could not create review', StatusCodes.BAD_REQUEST)
+//       new APPError('There are currently no reviews', StatusCodes.BAD_REQUEST)
 //     );
 
-//   res.status(StatusCodes.CREATED).json({
+//   res.status(StatusCodes.OK).json({
 //     status: 'success',
 //     data: {
-//       review,
+//       reviews,
 //     },
 //   });
 // });
 
-exports.getAllReviews = catchAsync(async function (req, res, next) {
-  const tour = {};
-  req.params.tourId ? (tour.tour = req.params.tourId) : '';
-  //   const { tourId } = req.params;
-  //   const reviews = await Review.find(tourId ? { tour: tourId } : {});
-  const reviews = await Review.find(tour);
+//// Post/Create Review
+// Add tourId and userId to req.body => Compensate for nested route through tourRouter
+exports.addReviewTourIdUserId = (req, res, next) => {
+  if (!req.body.tour) req.body.tour = req.params.tourId;
+  if (!req.body.user) req.body.user = req.user.id;
+  next();
+};
 
-  if (!reviews)
-    return next(
-      new APPError('There are currently no reviews', StatusCodes.BAD_REQUEST)
-    );
+// Get All reviews
+exports.getAllReviews = factory.getAll(Review);
 
-  res.status(StatusCodes.OK).json({
-    status: 'success',
-    data: {
-      reviews,
-    },
-  });
-});
+// Create review
+exports.createReview = factory.createOne(Review);
 
+// Update review
 exports.updateReview = factory.updateOne(Review);
 
+// Delete review
 exports.deleteReview = factory.deleteOne(Review);

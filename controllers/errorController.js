@@ -62,8 +62,23 @@ const handlerJWTExpiredError = () =>
     StatusCodes.UNAUTHORIZED
   );
 
+const handleJSONParseError = () => {
+  return new APPError(
+    'SignUp Data could not be parsed. Please try again later!',
+    StatusCodes.INTERNAL_SERVER_ERROR
+  );
+};
+
+const handleUndefinedRoute = () =>
+  new APPError(
+    'This route is not defined. Please check the route again',
+    StatusCodes.NOT_FOUND
+  );
 module.exports = (err, req, res, next) => {
   let error = { ...err };
+  if (typeof err === `string` && err.includes(`Cannot find "undefined"`))
+    error = handleUndefinedRoute(error);
+  // console.log(`Logging from global error hanndler: 💥💥💥💥`, typeof err);
   error.statusCode = error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
   error.status = err.status || 'error';
   // Operational, trusted error: send message to client
@@ -74,9 +89,10 @@ module.exports = (err, req, res, next) => {
   console.log(error);
   if (error.kind === 'ObjectId') error = handleCastErrorDB(error);
   if (error.code === 11000) error = handleDuplicateKeyDB(error);
-  if (error._message === 'Validation failed')
+  if (/validation failed/.test(error._message))
     error = handleValidationErrorDB(error);
   if (error.name === 'JsonWebTokenError') error = handlerJWTError();
   if (error.name === 'ExpiredTokenError') error = handlerJWTExpiredError();
+  if (error.type === 'entity.parse.failed') error = handleJSONParseError();
   if (process.env.NODE_ENV === 'production') return sendErrProd(res, error);
 };

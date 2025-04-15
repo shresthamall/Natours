@@ -13,6 +13,7 @@ const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 
+//// GLOBAL MIDDLEWARES:
 // Express application
 const app = express();
 
@@ -45,7 +46,7 @@ app.use(mongoSanitize());
 app.use(xss());
 
 // Prevent parameter pollution
-// Whitelisted parameters
+// 1) Whitelisted parameters
 const whiteListedParams = [
   'duration',
   'ratingsQuantity',
@@ -54,6 +55,7 @@ const whiteListedParams = [
   'difficulty',
   'price',
 ];
+// 2) Add hpp middleware
 app.use(
   hpp({
     whitelist: whiteListedParams,

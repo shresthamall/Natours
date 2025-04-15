@@ -4,7 +4,7 @@
   "description": "Course project - Backend application",
   "main": "server.js",
   "scripts": {
-    "start:dev": "npx nodemon server.js",
+    "start": "npx nodemon server.js",
     "start:prod": "NODE_ENV=production npx nodemon server.js",
     "debug": "ndb server.js"
   },

@@ -14,41 +14,6 @@ exports.topToursCheap = function (req, _, next) {
   next();
 };
 
-exports.createTour = factory.createOne(Tour);
-
-exports.getAllTours = catchAsync(async function (req, res, next) {
-  // Get apiFeatures from utils, send a new mongoose query and client queryObject
-  const features = new APIFeatures(Tour.find(), req.query);
-  // Clean up query and mount methods
-  const query = features.filter().sort().limitFields().paginate().getQuery();
-
-  // Execute query
-  const tours = await query;
-  // Send response
-  res
-    .status(StatusCodes.OK)
-    .json({ status: 'success', results: tours.length, data: { tours } });
-});
-
-exports.getTour = catchAsync(async function (req, res, next) {
-  const id = req.params.id;
-
-  const tour = await Tour.findById(id);
-  // If valid ID but no document found
-  if (!tour) {
-    console.log('tour undefined');
-    return next(
-      new AppError(`No tour was found with id: ${id}`, StatusCodes.NOT_FOUND)
-    );
-  }
-  // Send response
-  res.status(StatusCodes.OK).json({ status: 'success', data: { tour } });
-});
-
-exports.updateTour = factory.updateOne(Tour);
-
-exports.deleteTour = factory.deleteOne(Tour);
-
 exports.getTourStats = catchAsync(async function (req, res, next) {
   const stats = await Tour.aggregate([
     {
@@ -96,6 +61,7 @@ exports.getMonthlyTours = catchAsync(async function (req, res, next) {
         numTourStarts: { $sum: 1 },
         avgRating: { $avg: '$ratingsAverage' },
         avgPrice: { $avg: '$price' },
+        // $push operator used to create array
         tours: { $push: '$name' },
       },
     },
@@ -115,3 +81,42 @@ exports.getMonthlyTours = catchAsync(async function (req, res, next) {
     .status(StatusCodes.OK)
     .json({ status: 'success', data: { monthlyTours } });
 });
+
+exports.getTour = factory.getOne(Tour, 'reviews');
+
+exports.getAllTours = factory.getAll(Tour);
+
+exports.createTour = factory.createOne(Tour);
+
+exports.updateTour = factory.updateOne(Tour);
+
+exports.deleteTour = factory.deleteOne(Tour);
+
+// exports.getTour = catchAsync(async function (req, res, next) {
+//   const id = req.params.id;
+//   // Find tour and populate guides field
+//   const tour = await Tour.findById(id).populate('reviews');
+//   // If valid ID but no document found
+//   if (!tour) {
+//     console.log('tour undefined');
+//     return next(
+//       new AppError(`No tour was found with id: ${id}`, StatusCodes.NOT_FOUND)
+//     );
+//   }
+//   // Send response
+//   res.status(StatusCodes.OK).json({ status: 'success', data: { tour } });
+// });
+
+// exports.getAllTours = catchAsync(async function (req, res, next) {
+//   // Get apiFeatures from utils, send a new mongoose query and client queryObject
+//   const features = new APIFeatures(Tour.find(), req.query);
+//   // Clean up query and mount methods
+//   const query = features.filter().sort().limitFields().paginate().getQuery();
+
+//   // Execute query
+//   const tours = await query;
+//   // Send response
+//   res
+//     .status(StatusCodes.OK)
+//     .json({ status: 'success', results: tours.length, data: { tours } });
+// });

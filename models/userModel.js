@@ -28,7 +28,7 @@ const userSchemaModel = {
   password: {
     type: String,
     required: [true, 'A user must have a password!'],
-    minlength: 8,
+    minlength: [8, 'Password must be 8 characters long.'],
     select: false,
   },
   passwordConfirm: {
@@ -72,6 +72,7 @@ userSchema.pre('save', async function (next) {
   // Hash the password with the cost of 12
   this.password = await bcrypt.hash(this.password, 12);
   // Delete passwordConfirm field
+  // passwordConfirm is a required input aas defined in userSchema, but is not required to be persisted to DB.
   this.passwordConfirm = undefined;
   next();
 });
@@ -86,14 +87,15 @@ userSchema.pre('save', function (next) {
   next();
 });
 
+// User Document/Instance methods
 userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
 ) {
-  return await bcrypt.compare(candidatePassword, userPassword);
+  return bcrypt.compare(candidatePassword, userPassword);
 };
 
-userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+userSchema.methods.changedPasswordAfterJWTIssued = function (JWTTimestamp) {
   const lastPasswordChangeAt = this.passwordChangedAt;
   // Return false if password has never been changed
   if (!lastPasswordChangeAt) return false;
@@ -105,7 +107,7 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   // Check if JWT is older than previous password change timestamp
   return JWTTimestamp < passwordChangedTimestamp;
 };
-/* 
+
 // Creates a password reset token
 userSchema.methods.createPasswordResetToken = function () {
   console.log('entered createPasswordResetToken');
@@ -129,7 +131,7 @@ userSchema.methods.createPasswordResetToken = function () {
   // Return unencrypted token back to user
   return resetToken;
 };
- */
+
 // Return string of fields to be selected for embedded users
 userSchema.methods.getSelectedFields = function () {
   return selectUserFields.join(' ');

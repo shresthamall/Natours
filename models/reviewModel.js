@@ -44,23 +44,42 @@ const reviewSchema = new mongoose.Schema(
 
 // MIDDLEWARES:
 // DOCUMENT MIDDLEWARES:
+reviewSchema.pre('save', function (next) {
+  this.constructor().calcAvgRatings(this._id);
+  next();
+});
 
 // QUERY MIDDLEWARES:
-// Populate tour and user fields before returning results
+// Populate user fields before returning results. Populating tour field will create 3 level deep nested populates. Leaving the tour.id in place as a parent reference instead
 reviewSchema.pre(/^find/, function (next) {
-  //   this.populate({
-  //     path: 'tour',
-  //     select: 'name',
-  //   }).populate({
-  //     path: 'user',
-  //     select: 'name photo',
-  //   });
+  // this.populate({
+  //   path: 'tour',
+  //   select: 'name',
+  // }).populate({
+  //   path: 'user',
+  //   select: 'name photo',
+  // });
   this.populate({
     path: 'user',
     select: 'name photo',
   });
   next();
 });
+
+// Static functions on Model
+reviewSchema.statics.calcAvgRatings = async function (tourId) {
+  const stats = await this.aggregate([
+    { $match: { tour: tourId } },
+    {
+      $group: {
+        _id: '$tour',
+        nRating: { $sum: 1 },
+        avgRating: { $avg: '$rating' },
+      },
+    },
+  ]);
+  console.log(stats);
+};
 
 const Review = mongoose.model('Review', reviewSchema);
 
