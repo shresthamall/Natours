@@ -51,6 +51,7 @@ const tourSchemaModel = {
     default: 4.5,
     min: [1, 'A rating must have a minimum value of 1.0'],
     max: [5, 'A rating must have a maximum value of 5.0'],
+    set: (avg) => Math.round(avg * 10) / 10,
   },
   ratingsQuantity: { type: Number, default: 0 },
   summary: {
@@ -128,6 +129,8 @@ const tourSchema = new mongoose.Schema(tourSchemaModel, tourSchemaOptions);
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 // Index for the slud => Is unique and will be used to query for tours
 tourSchema.index({ slug: 1 });
+// Index the starting points for each tour for geospatial queries
+tourSchema.index({ startingPoint: '2dsphere' });
 
 // Add virtual properties to a schema
 tourSchema.virtual('durationWeeks').get(function () {
@@ -193,7 +196,10 @@ tourSchema.pre(/^find/, function (next) {
 // AGGREGATE MIDDLWARE:
 // this points to the aggregation object. .pipeline() returns the Pipeline Stage Array containging the aggregation criteria
 tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  // Only run when there is no $geoNear aggregation operator
+  if (!Object.keys(this.pipeline()[0]).includes('$geoNear')) {
+    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  }
   next();
 });
 

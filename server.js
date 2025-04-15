@@ -11,7 +11,7 @@ process.on('uncaughtException', (err) => {
 // Define global env variables
 dotenv.config({ path: './config.env' });
 // Load custom env variables before loading the app
-const app = require('./app');
+const app = require('./app.js');
 
 // Retrieve port and database api url
 const port = process.env.PORT || 3000;
