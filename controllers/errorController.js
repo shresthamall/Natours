@@ -74,6 +74,13 @@ const handleUndefinedRoute = () =>
     'This route is not defined. Please check the route again',
     StatusCodes.NOT_FOUND
   );
+
+const handleDuplicateReviewError = () =>
+  new APPError(
+    `A user can only post one review for each tour.`,
+    StatusCodes.BAD_REQUEST
+  );
+
 module.exports = (err, req, res, next) => {
   let error = { ...err };
   if (typeof err === `string` && err.includes(`Cannot find "undefined"`))
@@ -94,5 +101,7 @@ module.exports = (err, req, res, next) => {
   if (error.name === 'JsonWebTokenError') error = handlerJWTError();
   if (error.name === 'ExpiredTokenError') error = handlerJWTExpiredError();
   if (error.type === 'entity.parse.failed') error = handleJSONParseError();
+  if (error.errmsg.includes(/tour_1_user_1/))
+    error = handleDuplicateReviewError();
   if (process.env.NODE_ENV === 'production') return sendErrProd(res, error);
 };
