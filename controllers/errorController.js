@@ -101,7 +101,7 @@ module.exports = (err, req, res, next) => {
   if (error.name === 'JsonWebTokenError') error = handlerJWTError();
   if (error.name === 'ExpiredTokenError') error = handlerJWTExpiredError();
   if (error.type === 'entity.parse.failed') error = handleJSONParseError();
-  if (error.errmsg.includes(/tour_1_user_1/))
+  if (error.errmsg && error.errmsg.includes(/tour_1_user_1/))
     error = handleDuplicateReviewError();
   if (process.env.NODE_ENV === 'production') return sendErrProd(res, error);
 };

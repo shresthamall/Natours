@@ -129,6 +129,8 @@ const tourSchema = new mongoose.Schema(tourSchemaModel, tourSchemaOptions);
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 // Index for the slud => Is unique and will be used to query for tours
 tourSchema.index({ slug: 1 });
+// TODO: Remove?
+tourSchema.index({ slug: 1, _id: 1 }, { unique: true });
 // Index the starting points for each tour for geospatial queries
 tourSchema.index({ startingPoint: '2dsphere' });
 

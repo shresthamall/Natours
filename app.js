@@ -13,13 +13,14 @@ const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const viewRouter = require('./routes/viewRoutes');
 
 // Express application
 const app = express();
 
 // Set PUG Template Engine
 app.set('view engine', 'pug');
-app.set('view', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, 'views'));
 
 //// GLOBAL MIDDLEWARE FUNCTIONS
 // Serve static files
@@ -76,6 +77,7 @@ app.use((req, res, next) => {
 });
 
 // Add routers to app
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
