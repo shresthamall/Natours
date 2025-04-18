@@ -27,7 +27,26 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Set security HTTP headers
-app.use(helmet());
+// Update content security policy
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", 'https://unpkg.com/'],
+        styleSrc: ["'self'", 'https://unpkg.com/', 'https://*.googleapis.com'],
+        imgSrc: [
+          "'self'",
+          'data:',
+          'https://unpkg.com/',
+          'https://*.openstreetmap.org/',
+          'https://tiles.stadiamaps.com/',
+        ],
+      },
+    },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  })
+);
 
 // Morgan Logger - Logging for development
 if (process.env.NODE_ENV === 'development') {
