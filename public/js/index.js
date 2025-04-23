@@ -1,7 +1,7 @@
-import '@babel/polyfill';
-import { displayMap } from './mapbox';
-import { login, logout } from './login';
-import { showAlert } from './alerts';
+// import '@babel/polyfill';
+import { displayMap } from './leaflet.js';
+import { login, logout } from './login.js';
+// import { showAlert } from './alerts.js';
 
 // DOM Elements
 const mapBox = document.getElementById('map');
