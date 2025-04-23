@@ -5,31 +5,57 @@ Is called whenever next(err) is called anywhere/anytime during a process
 const { StatusCodes } = require('http-status-codes');
 const APPError = require('../utils/appError');
 
-const sendErrorDev = (res, err) => {
+const sendErrorDev = (req, res, err) => {
   console.log('Logging error from development', err);
-  res.status(err.statusCode).json({
-    status: err.status,
-    message: err.message,
-    error: err,
-    stack: err.stack,
-  });
-};
-
-const sendErrProd = (res, err) => {
-  console.log('Logging error from production');
-  if (err.isOperational) {
-    console.log('prod:isOperational/////', err);
+  // A) API accessed, return json
+  if (req.originalUrl.startsWith('/api')) {
     return res.status(err.statusCode).json({
       status: err.status,
       message: err.message,
+      error: err,
+      stack: err.stack,
     });
   }
-  // 1) Log error
-  console.error('Error 💥', err);
-  // 2) Send generic message to client
-  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-    status: 'error',
-    message: 'Uh Oh! Something went wrong!',
+  // B) Rendered website accessed, render html
+  res.status(err.statusCode).render('error', {
+    title: 'Something went wrong',
+    message: err.message,
+  });
+};
+
+const sendErrProd = (req, res, err) => {
+  console.log('Logging error from production');
+  // A) API accessed, return json
+  if (req.originalUrl.startsWith('/api')) {
+    // A.1) Operational, trusted error: send message to client
+    if (err.isOperational) {
+      console.log('prod:isOperational/////', err);
+      return res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message,
+      });
+    }
+    // A.2) Programming or other unknown error: don't leak error details
+    // A.2.1) Log error
+    console.error('Error 💥', err);
+    // A.2.2) Send generic message to client
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: 'error',
+      message: 'Uh Oh! Something went wrong!',
+    });
+  }
+  // B) Rendered website accessed, render html
+  // B.1) Operational, trusted error: send message to client
+  if (err.isOperational) {
+    return res.status(err.statusCode).render('error', {
+      title: 'Something went wrong',
+      message: err.message,
+    });
+  }
+  // B.2) Programming or other unknown error: don't leak error details
+  return res.status(err.statusCode).render('error', {
+    title: 'Something went wrong',
+    message: 'Please try again later!',
   });
 };
 
@@ -89,7 +115,8 @@ module.exports = (err, req, res, next) => {
   error.statusCode = error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
   error.status = err.status || 'error';
   // Operational, trusted error: send message to client
-  if (process.env.NODE_ENV === 'development') return sendErrorDev(res, error);
+  if (process.env.NODE_ENV === 'development')
+    return sendErrorDev(req, res, error);
 
   // Programming or other unknown error: don't leak error details
   // if (error.name === 'CastError') error = handleCastErrorDB(error);
@@ -103,5 +130,6 @@ module.exports = (err, req, res, next) => {
   if (error.type === 'entity.parse.failed') error = handleJSONParseError();
   if (error.errmsg && error.errmsg.includes(/tour_1_user_1/))
     error = handleDuplicateReviewError();
-  if (process.env.NODE_ENV === 'production') return sendErrProd(res, error);
+  if (process.env.NODE_ENV === 'production')
+    return sendErrProd(req, res, error);
 };

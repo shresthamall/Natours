@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const crypto = require('crypto');
 const { promisify } = require('util');
 const { StatusCodes } = require('http-status-codes');
@@ -108,6 +109,19 @@ exports.login = catchAsync(async function (req, res, next) {
   // Send response
   createSendToken(user, res);
 });
+
+exports.logout = (req, res) => {
+  // Reset cookie
+  res
+    .cookie('jwt', 'loggedout', {
+      expires: new Date(Date.now() + 10 * 1000),
+      httpOnly: true,
+    })
+    .status(StatusCodes.OK)
+    .json({
+      status: 'success',
+    });
+};
 
 exports.forgotPassword = catchAsync(async function (req, res, next) {
   // 1) Get the user based on POSTed email
@@ -219,16 +233,18 @@ exports.protect = catchAsync(async function (req, res, next) {
   let token;
   const { headers } = req;
   // 1) Get token and check if it exists
-  if (!headers.authorization || !headers.authorization.startsWith('Bearer'))
+  if (headers.authorization && headers.authorization.startsWith('Bearer'))
+    token = headers.authorization.split(' ')[1];
+  else if (req.cookies && req.cookies.jwt) {
+    token = req.cookies.jwt;
+  } else {
     return next(
       new APPError(
         'You are not logged in, please login to access this resource!',
         StatusCodes.UNAUTHORIZED
       )
     );
-
-  token = headers.authorization.split(' ')[1];
-
+  }
   // 2) Validate the token - Verification
   const decodedToken = await verify(token);
   //   console.log(decodedToken);
@@ -252,6 +268,29 @@ exports.protect = catchAsync(async function (req, res, next) {
     );
   // 5) Grant access to protected route
   req.user = currentUser;
+  next();
+});
+
+// Middleware: Authenticate user login
+exports.isLoggedIn = catchAsync(async function (req, res, next) {
+  let token;
+  // Get token from cookies
+  if (req.cookies && req.cookies.jwt && req.cookies.jwt !== 'loggedout') {
+    token = req.cookies.jwt;
+
+    // 2) Validate the token - Verification
+    const decodedToken = await verify(token);
+    //   console.log(decodedToken);
+    // 3) Check if user still exists
+    // TODO: Add check for inactive users that have deactivated their account
+    const currentUser = await User.findById(decodedToken.id);
+    if (!currentUser) return next();
+    // 4) Check if user changed password after token was issued
+    if (currentUser.changedPasswordAfterJWTIssued(decodedToken.iat))
+      return next();
+    // 5) Grant access to protected route
+    res.locals.user = currentUser;
+  }
   next();
 });
 

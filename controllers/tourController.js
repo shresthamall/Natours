@@ -36,7 +36,7 @@ exports.getTourStats = catchAsync(async function (req, res, next) {
       $sort: { avgPrice: 1 },
     },
   ]);
-  res.status(StatusCodes.OK).json({ status: 'success', data: { stats } });
+  res.status(StatusCodes.OK).json({ status: 'success', data: { data: stats } });
 });
 
 exports.getMonthlyTours = catchAsync(async function (req, res, next) {
@@ -79,7 +79,7 @@ exports.getMonthlyTours = catchAsync(async function (req, res, next) {
   ]);
   res
     .status(StatusCodes.OK)
-    .json({ status: 'success', data: { monthlyTours } });
+    .json({ status: 'success', data: { data: monthlyTours } });
 });
 
 exports.toursWithin = catchAsync(async function (req, res, next) {

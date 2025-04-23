@@ -4,26 +4,6 @@ const APPError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const factory = require('./handlerFactory');
 
-// exports.getAllReviews = catchAsync(async function (req, res, next) {
-//   const tour = {};
-//   req.params.tourId ? (tour.tour = req.params.tourId) : '';
-//   //   const { tourId } = req.params;
-//   //   const reviews = await Review.find(tourId ? { tour: tourId } : {});
-//   const reviews = await Review.find(tour);
-
-//   if (!reviews)
-//     return next(
-//       new APPError('There are currently no reviews', StatusCodes.BAD_REQUEST)
-//     );
-
-//   res.status(StatusCodes.OK).json({
-//     status: 'success',
-//     data: {
-//       reviews,
-//     },
-//   });
-// });
-
 //// Post/Create Review
 // Add tourId and userId to req.body => Compensate for nested route through tourRouter
 exports.addReviewTourIdUserId = (req, res, next) => {
@@ -43,3 +23,25 @@ exports.updateReview = factory.updateOne(Review);
 
 // Delete review
 exports.deleteReview = factory.deleteOne(Review);
+
+/* 
+exports.getAllReviews = catchAsync(async function (req, res, next) {
+  const tour = {};
+  req.params.tourId ? (tour.tour = req.params.tourId) : '';
+  //   const { tourId } = req.params;
+  //   const reviews = await Review.find(tourId ? { tour: tourId } : {});
+  const reviews = await Review.find(tour);
+
+  if (!reviews)
+    return next(
+      new APPError('There are currently no reviews', StatusCodes.BAD_REQUEST)
+    );
+
+  res.status(StatusCodes.OK).json({
+    status: 'success',
+    data: {
+      reviews,
+    },
+  });
+});
+ */

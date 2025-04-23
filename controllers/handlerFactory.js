@@ -51,9 +51,8 @@ exports.createOne = (Model) =>
     const doc = await Model.create(req.body);
     // Filter fields -> Improve TODO
     doc['__v'] = undefined;
-    const modelName = Model.modelName;
     const data = {};
-    data[modelName] = doc;
+    data['data'] = doc;
 
     // Resolve connection - success
     res.status(StatusCodes.CREATED).json({
@@ -81,9 +80,8 @@ exports.getOne = (Model, popOptions) =>
       );
     }
     // Send response
-    const modelName = Model.modelName;
     const data = {};
-    data[modelName] = doc;
+    data['data'] = doc;
     res.status(StatusCodes.OK).json({
       status: 'success',
       data,
@@ -106,9 +104,8 @@ exports.getAll = (Model) =>
     const doc = await query;
 
     // Send response // TODO: May need to change modelName to data to make is easier to implement front end side
-    const modelName = `${Model.modelName}s`;
     const data = {};
-    data[modelName] = doc;
+    data['data'] = doc;
     res
       .status(StatusCodes.OK)
       .json({ status: 'success', results: doc.length, data });

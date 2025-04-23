@@ -14,6 +14,8 @@ const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const viewRouter = require('./routes/viewRoutes');
+const { connect } = require('http2');
+const cookieParser = require('cookie-parser');
 
 // Express application
 const app = express();
@@ -42,6 +44,7 @@ app.use(
           'https://*.openstreetmap.org/',
           'https://tiles.stadiamaps.com/',
         ],
+        connectSrc: ["'self'", 'http://127.0.0.1:*/', 'ws://127.0.0.1:*/'],
       },
     },
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
@@ -64,6 +67,8 @@ app.use('/api', limiter);
 
 // Body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' }));
+// Parse cookies
+app.use(cookieParser());
 
 // Data sanitization against NOSQL query injection
 app.use(mongoSanitize());
@@ -92,6 +97,12 @@ app.use(
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   // console.log(req.headers);
+  next();
+});
+
+// Test middleware
+app.use((req, res, next) => {
+  console.log(req);
   next();
 });
 

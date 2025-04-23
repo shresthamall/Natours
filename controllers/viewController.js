@@ -1,5 +1,6 @@
 const catchAsync = require('../utils/catchAsync');
 const Tour = require('./../models/tourModel');
+const AppError = require('../utils/appError');
 const { StatusCodes } = require('http-status-codes');
 
 exports.getOverview = catchAsync(async (req, res, next) => {
@@ -22,10 +23,32 @@ exports.getTour = catchAsync(async (req, res, next) => {
     path: 'reviews',
     fields: 'review rating user',
   });
+
+  // Check if tour exists
+  if (!tour) {
+    return next(
+      new AppError('No tour found with that name', StatusCodes.NOT_FOUND)
+    );
+  }
+
   // 2) Build template
   // 3) Render template using data from step 1)
   res.status(StatusCodes.OK).render('tour', {
     title: `${tour.name} Tour`,
     tour,
+  });
+});
+
+exports.getLoginForm = catchAsync(async (req, res, next) => {
+  // Render login form
+  res.status(StatusCodes.OK).render('login', {
+    title: 'Log into your account',
+  });
+});
+
+exports.getSignupForm = catchAsync(async (req, res, next) => {
+  // Render signup form
+  res.status(StatusCodes.OK).render('signup', {
+    title: 'Create your account!',
   });
 });
