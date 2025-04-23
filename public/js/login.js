@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { showAlert } from './alert.js';
+const API_URL = 'http://127.0.0.1:3000/api/v1';
 
 export const login = async function (email, password) {
   // Get user login input data
@@ -10,7 +11,7 @@ export const login = async function (email, password) {
       password,
     };
     // Create login url
-    const loginUrl = 'http://127.0.0.1:3000/api/v1/users/login';
+    const loginUrl = `${API_URL}/users/login`;
     // Send login req to server
     const result = await axios({
       method: 'POST',
@@ -49,4 +50,31 @@ export const logout = async function () {
 
 export const signup = async function (name, email, password, passwordConfirm) {
   console.log(name, email, password, passwordConfirm);
+  //  Create signup url
+  const signupUrl = `${API_URL}/users/signup`;
+  //  Create user data
+  const userData = {
+    name,
+    email,
+    password,
+    passwordConfirm,
+  };
+  //  Send signup request to server
+  try {
+    const result = await axios({
+      method: 'POST',
+      url: signupUrl,
+      data: userData,
+    });
+    console.log(result);
+    if (result.data.status === 'success') {
+      showAlert('success', 'Account created successfully!');
+      // Redirect to overview page after 1500 seconds
+      window.setTimeout(() => {
+        location.assign('/');
+      }, 1500);
+    }
+  } catch (err) {
+    showAlert('error', err.response.data.message);
+  }
 };

@@ -109,6 +109,7 @@ const handleDuplicateReviewError = () =>
 
 module.exports = (err, req, res, next) => {
   let error = { ...err };
+  error.message = err.message;
   if (typeof err === `string` && err.includes(`Cannot find "undefined"`))
     error = handleUndefinedRoute(error);
   // console.log(`Logging from global error hanndler: 💥💥💥💥`, typeof err);
