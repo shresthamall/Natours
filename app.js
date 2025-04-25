@@ -44,7 +44,12 @@ app.use(
           'https://*.openstreetmap.org/',
           'https://tiles.stadiamaps.com/',
         ],
-        connectSrc: ["'self'", 'http://127.0.0.1:*/', 'ws://127.0.0.1:*/'],
+        connectSrc: [
+          "'self'",
+          'http://127.0.0.1:*/',
+          'ws://127.0.0.1:*/',
+          'ws://localhost:*/',
+        ],
       },
     },
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
@@ -101,10 +106,10 @@ app.use((req, res, next) => {
 });
 
 // Test middleware
-app.use((req, res, next) => {
-  console.log(req);
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log(req);
+//   next();
+// });
 
 // Add routers to app
 app.use('/', viewRouter);

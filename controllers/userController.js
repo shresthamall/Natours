@@ -16,15 +16,6 @@ const filterObj = (obj, ...allowedFields) => {
 
 // Handlers
 
-// exports.getAllUsers = catchAsync(async function (req, res) {
-//   // Execute query
-//   const users = await User.find();
-//   // Send response
-//   res
-//     .status(StatusCodes.OK)
-//     .json({ status: 'success', results: users.length, data: { users } });
-// });
-
 exports.getMe = function (req, res, next) {
   req.params.id = req.user.id;
   next();

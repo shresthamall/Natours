@@ -65,17 +65,17 @@ userSchema.pre(/^find/, function (next) {
 });
 
 // Encrypt password before saving it to DB each time a password is changed
-// userSchema.pre('save', async function (next) {
-//   // Only run if password is modified
-//   if (!this.isModified('password')) return next();
+userSchema.pre('save', async function (next) {
+  // Only run if password is modified
+  if (!this.isModified('password')) return next();
 
-//   // Hash the password with the cost of 12
-//   this.password = await bcrypt.hash(this.password, 12);
-//   // Delete passwordConfirm field
-//   // passwordConfirm is a required input aas defined in userSchema, but is not required to be persisted to DB.
-//   this.passwordConfirm = undefined;
-//   next();
-// });
+  // Hash the password with the cost of 12
+  this.password = await bcrypt.hash(this.password, 12);
+  // Delete passwordConfirm field
+  // passwordConfirm is a required input aas defined in userSchema, but is not required to be persisted to DB.
+  this.passwordConfirm = undefined;
+  next();
+});
 
 // Add/Update passwordChanged at to DB anytime a password is changed
 userSchema.pre('save', function (next) {

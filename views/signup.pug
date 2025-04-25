@@ -9,10 +9,10 @@ block content
     main.main
         .login-form.signup
             h2.heading-secondary.ma-bt-lg Create your account!
-            form.form
-            +formBox('name', 'Your name', 'name', 'text', '')
-            +formBox('email', 'Email address', 'email', 'email', 'you@example.com')
-            +formBox('password', 'Password', 'password', 'password', '••••••••', 8)
-            +formBox('passwordConfirm', 'Confirm Password', 'passwordConfirm', 'password', '••••••••', 8)
-            .form__group
-                button.btn.btn--green Sign up
+            form.form.form--login.signup
+                +formBox('name', 'Your name', 'name', 'text', '')
+                +formBox('email', 'Email address', 'email', 'email', 'you@example.com')
+                +formBox('password', 'Password', 'password', 'password', '••••••••', 8)
+                +formBox('passwordConfirm', 'Confirm Password', 'passwordConfirm', 'password', '••••••••', 8)
+                .form__group
+                    button.btn.btn--green Sign up

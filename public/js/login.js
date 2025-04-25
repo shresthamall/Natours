@@ -39,8 +39,12 @@ export const logout = async function () {
     if (result.data.status === 'success') {
       // Show alert
       showAlert('success', 'Logged out successfully!');
-      //   Reload page
-      location.reload(true);
+      //   Reload page / If current path is .../me -> load overview page
+      if (location.pathname === '/me') {
+        location.assign('/');
+      } else {
+        location.reload(true);
+      }
     }
     // If logout fails
   } catch (err) {
@@ -49,6 +53,7 @@ export const logout = async function () {
 };
 
 export const signup = async function (name, email, password, passwordConfirm) {
+  console.log(`signup in login.js called`);
   console.log(name, email, password, passwordConfirm);
   //  Create signup url
   const signupUrl = `${API_URL}/users/signup`;
@@ -71,7 +76,7 @@ export const signup = async function (name, email, password, passwordConfirm) {
       showAlert('success', 'Account created successfully!');
       // Redirect to overview page after 1500 seconds
       window.setTimeout(() => {
-        location.assign('/');
+        location.assign('/me');
       }, 1500);
     }
   } catch (err) {
