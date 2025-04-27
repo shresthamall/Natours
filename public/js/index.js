@@ -1,7 +1,7 @@
 import '@babel/polyfill';
 import { displayMap } from './leaflet.js';
 import { login, logout, signup } from './login.js';
-import { updateUserData, updateUserPassword } from './updateSettings.js';
+import { updateSettings } from './updateSettings.js';
 import { showAlert } from './alert.js';
 
 // DOM Elements
@@ -9,6 +9,8 @@ const mapBox = document.getElementById('map');
 const loginForm = document.querySelector('.login-form');
 const logOutBtn = document.querySelector('.nav__el--logout');
 const userAccountWindow = document.querySelector('.user-view');
+const userDataForm = document.querySelector('.form-user-data');
+const userPasswordForm = document.querySelector('.form-user-password');
 
 // DELEGATION
 if (mapBox) {
@@ -47,23 +49,40 @@ if (loginForm?.classList.contains('signup')) {
 if (logOutBtn) logOutBtn.addEventListener('click', logout);
 
 // User Account page Event Delegation
-if (userAccountWindow) {
-  userAccountWindow.addEventListener('click', (e) => {
+if (userDataForm) {
+  userDataForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const target = e.target;
-    // Delegate work according to the element clicked
-    // A) User data update requested: Name and email change allowed
-    if (target.classList.contains('btn--save--settings')) {
-      const name = document.getElementById('name').value;
-      const email = document.getElementById('email').value;
-      updateUserData(name, email);
-    }
+    const targetBtn = e.target.querySelector('.btn--save-settings');
+    targetBtn.textContent = 'Updating...';
+    const form = new FormData();
+    form.append('name', document.getElementById('name').value);
+    form.append('email', document.getElementById('email').value);
+    form.append('photo', document.getElementById('photo').files[0]);
+    await updateSettings(form, 'data');
+    targetBtn.textContent = 'Save settings';
+  });
+}
 
-    if (target.classList.contains('btn--save--password')) {
-      const passwordCurrent = document.getElementById('password-current').value;
-      const password = document.getElementById('password').value;
-      const passwordConfirm = document.getElementById('password-confirm').value;
-      updateUserPassword(passwordCurrent, password, passwordConfirm);
-    }
+if (userPasswordForm) {
+  userPasswordForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const targetBtn = e.target.querySelector('.btn--save-password');
+    targetBtn.textContent = 'Updating...';
+    const form = new FormData();
+    form.append(
+      'passwordCurrent',
+      document.getElementById('password-current').value
+    );
+    form.append('password', document.getElementById('password').value);
+    form.append(
+      'passwordConfirm',
+      document.getElementById('password-confirm').value
+    );
+    console.log(form.get('passwordCurrent'));
+    await updateSettings(form, 'password');
+    targetBtn.textContent = 'Save password';
+    document.getElementById('password-current').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('password-confirm').value = '';
   });
 }

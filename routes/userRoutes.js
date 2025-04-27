@@ -24,7 +24,12 @@ router.patch('/updateMyPassword', authController.updatePassword);
 // Get data for the current logged in user
 router.route('/me').get(userController.getMe, userController.getUser);
 // Updating current logged in user's data
-router.patch('/updateMe', userController.updateMe);
+router.patch(
+  '/updateMe',
+  userController.uploadUserPhoto,
+  userController.resizePhoto,
+  userController.updateMe
+);
 // Delete current user
 router.delete('/deleteMe', userController.deleteMe);
 

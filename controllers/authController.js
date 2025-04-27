@@ -213,6 +213,7 @@ exports.updatePassword = catchAsync(async function (req, res, next) {
       )
     );
   // 2) Check if POSTed password is correct
+  console.log(req.body);
   if (!(await user.correctPassword(req.body.passwordCurrent, user.password)))
     return next(
       new APPError(
@@ -275,7 +276,7 @@ exports.protect = catchAsync(async function (req, res, next) {
 exports.isLoggedIn = catchAsync(async function (req, res, next) {
   let token;
   // Get token from cookies
-  if (req.cookies && req.cookies.jwt && req.cookies.jwt !== 'loggedout') {
+  if (req?.cookies?.jwt !== 'loggedout') {
     token = req.cookies.jwt;
 
     // 2) Validate the token - Verification
