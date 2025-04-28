@@ -68,18 +68,13 @@ if (userPasswordForm) {
     e.preventDefault();
     const targetBtn = e.target.querySelector('.btn--save-password');
     targetBtn.textContent = 'Updating...';
-    const form = new FormData();
-    form.append(
-      'passwordCurrent',
-      document.getElementById('password-current').value
-    );
-    form.append('password', document.getElementById('password').value);
-    form.append(
-      'passwordConfirm',
-      document.getElementById('password-confirm').value
-    );
-    console.log(form.get('passwordCurrent'));
-    await updateSettings(form, 'password');
+    const data = {
+      passwordCurrent: document.getElementById('password-current').value,
+      password: document.getElementById('password').value,
+      passwordConfirm: document.getElementById('password-confirm').value,
+    };
+    console.log(data);
+    await updateSettings(data, 'password');
     targetBtn.textContent = 'Save password';
     document.getElementById('password-current').value = '';
     document.getElementById('password').value = '';

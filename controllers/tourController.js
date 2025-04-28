@@ -1,3 +1,5 @@
+const multer = require('multer');
+const sharp = require('sharp');
 const Tour = require('./../models/tourModel');
 const AppError = require('./../utils/appError');
 const APIFeatures = require('./../utils/apiFeatures');
@@ -5,6 +7,30 @@ const catchAsync = require('./../utils/catchAsync');
 const factory = require('./handlerFactory');
 
 const { StatusCodes } = require('http-status-codes/build/cjs/status-codes.js');
+
+// Helper fns
+const createMulterUpload = () => {
+  //// Multer -- Photo Uploads
+  // Store uploaded files in memory as a buffer
+  const storage = multer.memoryStorage();
+  // Create multer filter
+  const fileFilter = (req, file, cb) => {
+    // Check if file is an image
+    if (file.mimetype.startsWith('image')) {
+      cb(null, true);
+    } else {
+      cb(
+        new AppError(
+          'Not an image! Please upload only images.',
+          StatusCodes.BAD_REQUEST
+        ),
+        false
+      );
+    }
+  };
+  return multer({ storage, fileFilter });
+};
+
 // Handlers
 
 exports.topToursCheap = function (req, _, next) {
@@ -142,6 +168,54 @@ exports.getDistances = catchAsync(async function (req, res, next) {
     data: { data: distances },
   });
 });
+
+// Adds uploaded image files to req.files as memory buffer
+exports.uploadTourPhotos = createMulterUpload().fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 },
+]);
+
+exports.resizeTourPhotos = catchAsync(async function (req, res, next) {
+  // No file uploaded
+  if (!req.files) return next();
+  // Get tourId
+  const tourId = req.params.id;
+
+  // console.log(req.files);
+
+  // req.files obj contains imageCover and images => both are arrays with image files in them
+  // Cover image
+  if (Array.isArray(req.files.imageCover) && req.files.imageCover.length > 0) {
+    // Create imageCoverFilename
+    req.body.imageCover = `tour-${tourId}-${Date.now()}-cover.jpeg`;
+    // Add imageCover to disk
+    await sharp(req.files.imageCover[0].buffer)
+      .resize(2000, 1333)
+      .toFormat('jpeg')
+      .toFile(`public/img/tours/${req.body.imageCover}`);
+  }
+
+  // Images
+  if (Array.isArray(req.files.images) && req.files.images.length > 0) {
+    // Create images filenames
+    req.body.images = [];
+    // Loop through each file in array and process each image
+    Promise.all(
+      req.files.images.map(async (file, i) => {
+        // Create filename for image i+1 and add it to images
+        req.body.images.push(`tour-${tourId}-${Date.now()}-${i + 1}.jpeg`);
+        // Save image to disk
+        await sharp(file.buffer)
+          .resize(2000, 1333)
+          .toFormat('jpeg')
+          .toFile(`public/img/tours/${req.body.images[i]}`);
+      })
+    );
+  }
+
+  next();
+});
+
 exports.getTour = factory.getOne(Tour, 'reviews');
 
 exports.getAllTours = factory.getAll(Tour);

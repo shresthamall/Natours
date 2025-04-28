@@ -6,7 +6,7 @@ const { StatusCodes } = require('http-status-codes');
 const User = require('./../models/userModel');
 const catchAsync = require('./../utils/catchAsync');
 const APPError = require('./../utils/appError');
-const sendEmail = require('./../utils/email');
+const Email = require('./../utils/email');
 
 // Sign token and return new token
 const signToken = (id) => {
@@ -76,6 +76,10 @@ exports.signup = catchAsync(async function (req, res, next) {
     // TODO: Check this
     role: req.body.role,
   });
+
+  // Send welcome email
+  const url = `${req.protocol}://${req.get('host')}/me`;
+  await new Email(newUser, url).sendWelcome();
 
   // Send response
   createSendToken(newUser, res);
@@ -147,11 +151,13 @@ exports.forgotPassword = catchAsync(async function (req, res, next) {
 
   // Catch error here first then throw to globalErrorHandler -> On error, we must reset the passwordResetToken & passwordResetExpires
   try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Your password reset token (valid for next 10 minutes)',
-      text: message,
-    });
+    await new Email(user, resetURL).sendPasswordReset();
+    // TODO: Uncomment
+    // await sendEmail({
+    //   email: user.email,
+    //   subject: 'Your password reset token (valid for next 10 minutes)',
+    //   text: message,
+    // });
 
     res.status(StatusCodes.OK).json({
       status: 'success',
@@ -213,7 +219,6 @@ exports.updatePassword = catchAsync(async function (req, res, next) {
       )
     );
   // 2) Check if POSTed password is correct
-  console.log(req.body);
   if (!(await user.correctPassword(req.body.passwordCurrent, user.password)))
     return next(
       new APPError(
@@ -276,7 +281,7 @@ exports.protect = catchAsync(async function (req, res, next) {
 exports.isLoggedIn = catchAsync(async function (req, res, next) {
   let token;
   // Get token from cookies
-  if (req?.cookies?.jwt !== 'loggedout') {
+  if (req.cookies && req.cookies.jwt && req.cookies.jwt !== 'loggedout') {
     token = req.cookies.jwt;
 
     // 2) Validate the token - Verification
