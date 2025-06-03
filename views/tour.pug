@@ -79,10 +79,7 @@ block content
             .cta__content
                 h2.heading-secondary What are you waiting for?
                 p.cta__text=`${tour.duration} days. 1 adventure. Infinite memories. Make it yours today!`
-                if user
-                    button#book-tour.btn.btn--green.span-all-rows(data-tour-id=`${tour.id}`) Book tour now!
-                else 
-                    a.btn.btn--small.btn--green.span-all-rows(href='/login') Login to book tour now!
+                button.btn.btn--green.span-all-rows Book tour now!
 
 block append footer 
     //- script(src='/js/leaflet.js')

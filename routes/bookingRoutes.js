@@ -11,4 +11,4 @@ router.get(
   bookingController.createCheckoutSession
 );
 
-router.module.exports = router;
+module.exports = router;

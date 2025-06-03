@@ -13,12 +13,9 @@ const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
-const bookingRouter = require('./routes/bookingRoutes');
 const viewRouter = require('./routes/viewRoutes');
 const { connect } = require('http2');
 const cookieParser = require('cookie-parser');
-const { error } = require('console');
-const { appendFile } = require('fs');
 
 // Express application
 const app = express();
@@ -38,11 +35,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: [
-          "'self'",
-          'https://unpkg.com/',
-          'https://js.stripe.com/v3/',
-        ],
+        scriptSrc: ["'self'", 'https://unpkg.com/'],
         styleSrc: ["'self'", 'https://unpkg.com/', 'https://*.googleapis.com'],
         imgSrc: [
           "'self'",
@@ -57,7 +50,6 @@ app.use(
           'ws://127.0.0.1:*/',
           'ws://localhost:*/',
         ],
-        frameSrc: ['https://js.stripe.com/'],
       },
     },
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
@@ -124,11 +116,6 @@ app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
-try {
-  app.use('/api/v1/bookings', bookingRouter);
-} catch (err) {
-  throw new AppError('bookings...........', 400);
-}
 
 // Router for invalid URL request
 app.all('*', (req, res, next) => {
