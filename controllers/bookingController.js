@@ -2,6 +2,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Tour = require('./../models/tourModel');
 const catchAsync = require('../utils/catchAsync');
 const { StatusCodes } = require('http-status-codes');
+console.log(module);
 
 exports.createCheckoutSession = catchAsync(async function (req, res, next) {
   // 1) Get tour from db

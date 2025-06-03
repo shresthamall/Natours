@@ -57,6 +57,13 @@ const selectUserFields = ['name', 'role', 'email', 'photo'];
 
 const userSchema = mongoose.Schema(userSchemaModel);
 
+// Virtual populate user with bookings
+userSchema.virtual('bookings', {
+  ref: 'Booking',
+  foreignField: 'user',
+  localField: '_id',
+});
+
 // Limit inactive users from being shown in results
 userSchema.pre(/^find/, function (next) {
   this.find({ active: { $ne: false } });
