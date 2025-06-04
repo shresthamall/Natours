@@ -103,7 +103,6 @@ exports.getAll = (Model) =>
     // const doc = await query.explain();
     const doc = await query;
 
-    // Send response // TODO: May need to change modelName to data to make is easier to implement front end side
     const data = {};
     data['data'] = doc;
     res

@@ -3,7 +3,26 @@ const Tour = require('./../models/tourModel');
 const Booking = require('./../models/bookingModel');
 const catchAsync = require('../utils/catchAsync');
 const factory = require('./handlerFactory');
+const appError = require('../utils/appError');
 const { StatusCodes } = require('http-status-codes');
+
+const createBookingCheckoutSession = catchAsync(async function (
+  tourId,
+  userId,
+  price
+) {
+  try {
+    const booking = await Booking.create({
+      tour: tourId,
+      user: userId,
+      price,
+    });
+    return booking;
+  } catch (err) {
+    // console.error('Error creating booking:', err);
+    throw new appError('Failed to create booking');
+  }
+});
 
 exports.createCheckoutSession = catchAsync(async function (req, res, next) {
   // 1) Get tour from db
@@ -35,6 +54,8 @@ exports.createCheckoutSession = catchAsync(async function (req, res, next) {
       },
     ],
   });
+
+  createBookingCheckoutSession(tour._id, req.user._id, tour.price);
   // 3) Send response
   res.status(StatusCodes.OK).json({
     status: 'success',

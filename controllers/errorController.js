@@ -29,7 +29,7 @@ const sendErrProd = (req, res, err) => {
   if (req.originalUrl.startsWith('/api')) {
     // A.1) Operational, trusted error: send message to client
     if (err.isOperational) {
-      console.log('prod:isOperational/////', err);
+      // console.log('prod:isOperational/////', err);
       return res.status(err.statusCode).json({
         status: err.status,
         message: err.message,
@@ -67,7 +67,6 @@ const handleCastErrorDB = (err) => {
 
 const handleDuplicateKeyDB = (err) => {
   console.log('handleDuplicateKeyDB');
-  // TODO: add /"${err.keyValue.name}/" below
   const message = `Duplicate field value: ${err.keyValue.name}. Please use another value!`;
   return new APPError(message, StatusCodes.BAD_REQUEST);
 };

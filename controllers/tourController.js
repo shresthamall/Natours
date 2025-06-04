@@ -68,7 +68,7 @@ exports.getTourStats = catchAsync(async function (req, res, next) {
 exports.getMonthlyTours = catchAsync(async function (req, res, next) {
   // Get total number of tours offered in a specified year for each month
   const year = +req.params.year;
-  console.log(year);
+  // console.log(year);
   const monthlyTours = await Tour.aggregate([
     {
       $unwind: '$startDates',

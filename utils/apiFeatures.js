@@ -25,7 +25,7 @@ class APIFeatures {
   limitFields() {
     if (this.queryString.fields) {
       const selectBy = this.queryString.fields.replaceAll(',', ' ');
-      console.log('selectby    ', selectBy);
+      // console.log('selectby    ', selectBy);
       this.query = this.query.select(selectBy);
     } else {
       // If no fields specified, return all fields barring '__v'

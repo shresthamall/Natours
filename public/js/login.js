@@ -18,7 +18,7 @@ export const login = async function (email, password) {
       url: loginUrl,
       data: userData,
     });
-    console.log(result);
+    // console.log(result);
     if (result.data.status === 'success') {
       showAlert('success', 'Logged in successfully!');
       // Redirect to overview page after 1500 se    conds
@@ -32,10 +32,10 @@ export const login = async function (email, password) {
 };
 
 export const logout = async function () {
-  console.log('logout in login.js called');
+  // console.log('logout in login.js called');
   try {
     const result = await axios({ method: 'GET', url: '/api/v1/users/logout' });
-    console.log(result.data);
+    // console.log(result.data);
     if (result.data.status === 'success') {
       // Show alert
       showAlert('success', 'Logged out successfully!');
@@ -53,8 +53,8 @@ export const logout = async function () {
 };
 
 export const signup = async function (name, email, password, passwordConfirm) {
-  console.log(`signup in login.js called`);
-  console.log(name, email, password, passwordConfirm);
+  // console.log(`signup in login.js called`);
+  // console.log(name, email, password, passwordConfirm);
   //  Create signup url
   const signupUrl = `${API_URL}/users/signup`;
   //  Create user data
@@ -71,7 +71,7 @@ export const signup = async function (name, email, password, passwordConfirm) {
       url: signupUrl,
       data: userData,
     });
-    console.log(result);
+    // console.log(result);
     if (result.data.status === 'success') {
       showAlert('success', 'Account created successfully!');
       // Redirect to overview page after 1500 seconds

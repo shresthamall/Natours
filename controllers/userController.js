@@ -62,8 +62,6 @@ exports.resizePhoto = catchAsync(async function (req, res, next) {
 });
 
 exports.updateMe = catchAsync(async function (req, res, next) {
-  // TODO: Delete
-  console.log(req.file);
   // 1) Create error if user POSTs password data
   if (req.body.password || req.body.passwordConfirm)
     return next(
@@ -76,7 +74,7 @@ exports.updateMe = catchAsync(async function (req, res, next) {
   const filteredBody = filterObj(req.body, 'name', 'email');
   // Add photo to filteredBody, if an image has been uploaded
   filteredBody.photo = req.file.filename;
-  console.log('********************', filteredBody);
+  // console.log('********************', filteredBody);
 
   // 2) Update user document
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {

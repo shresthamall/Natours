@@ -130,7 +130,7 @@ exports.logout = (req, res) => {
 exports.forgotPassword = catchAsync(async function (req, res, next) {
   // 1) Get the user based on POSTed email
   const user = await User.findOne({ email: req.body.email });
-  console.log('user found: ', user);
+  // console.log('user found: ', user);
   if (!user)
     return next(
       new APPError('No user was found with that email', StatusCodes.NOT_FOUND)
@@ -138,11 +138,11 @@ exports.forgotPassword = catchAsync(async function (req, res, next) {
 
   // 2) Create a password reset token
   const resetToken = user.createPasswordResetToken();
-  console.log('resetToken: ', resetToken);
+  // console.log('resetToken: ', resetToken);
   // Save the file but not run validators: Email and password are not provided
   await user.save({ validateBeforeSave: false });
 
-  console.log('document saved');
+  // console.log('document saved');
 
   // 3) Send token back to user
   const resetURL = createPasswordResetURL(req, resetToken);
@@ -153,11 +153,11 @@ exports.forgotPassword = catchAsync(async function (req, res, next) {
   try {
     await new Email(user, resetURL).sendPasswordReset();
     // TODO: Uncomment
-    // await sendEmail({
-    //   email: user.email,
-    //   subject: 'Your password reset token (valid for next 10 minutes)',
-    //   text: message,
-    // });
+    await sendEmail({
+      email: user.email,
+      subject: 'Your password reset token (valid for next 10 minutes)',
+      text: message,
+    });
 
     res.status(StatusCodes.OK).json({
       status: 'success',
@@ -257,7 +257,7 @@ exports.protect = catchAsync(async function (req, res, next) {
   // 3) Check if user still exists
   // TODO: Add check for inactive users that have deactivated their account
   const currentUser = await User.findById(decodedToken.id);
-  if (!currentUser)
+  if (!currentUser && !currentUser.active)
     return next(
       new APPError(
         'This user belonging to this token no longer exists!',
@@ -290,7 +290,7 @@ exports.isLoggedIn = catchAsync(async function (req, res, next) {
     // 3) Check if user still exists
     // TODO: Add check for inactive users that have deactivated their account
     const currentUser = await User.findById(decodedToken.id);
-    if (!currentUser) return next();
+    if (!currentUser && !currentUser.active) return next();
     // 4) Check if user changed password after token was issued
     if (currentUser.changedPasswordAfterJWTIssued(decodedToken.iat))
       return next();

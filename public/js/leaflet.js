@@ -1,4 +1,4 @@
-console.log('Hello from the client side:)');
+// console.log('Hello from the client side:)');
 
 export const displayMap = function (locations, startLocation) {
   // Sorted starting location coordinates

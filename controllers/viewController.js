@@ -43,10 +43,11 @@ exports.getTour = catchAsync(async (req, res, next) => {
 exports.getMyTours = catchAsync(async (req, res, next) => {
   // 1) Find all bookings for the user
   const bookings = req.user.bookings;
+  // console.log(req.user);
 
   // 2) Find tours with the returned IDs
   const tours = await Tour.find({
-    _id: { $in: bookings.tours },
+    _id: { $in: bookings.map((el) => el.tour) },
   });
 
   // 3) Render template with the tours
