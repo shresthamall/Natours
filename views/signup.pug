@@ -1,0 +1,18 @@
+extends base
+
+mixin formBox(_for='', _label='', _id='', _type='', _placeholder='', _minlength=1)
+    .form__group
+        label.form__label(for= _for)= _label
+        input.form__input(id= _id,type= _type, placeholder=_placeholder, required, minlength=_minlength)
+
+block content
+    main.main
+        .login-form.signup
+            h2.heading-secondary.ma-bt-lg Create your account!
+            form.form.form--login.signup
+                +formBox('name', 'Your name', 'name', 'text', '')
+                +formBox('email', 'Email address', 'email', 'email', 'you@example.com')
+                +formBox('password', 'Password', 'password', 'password', '••••••••', 8)
+                +formBox('passwordConfirm', 'Confirm Password', 'passwordConfirm', 'password', '••••••••', 8)
+                .form__group
+                    button.btn.btn--green Sign up

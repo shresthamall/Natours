@@ -1,0 +1,8 @@
+node_modules
+.eslintrc.json
+.prettierrc
+.vscode
+config.env
+.DS_Store
+nodemon.json
+.parcel-cache
