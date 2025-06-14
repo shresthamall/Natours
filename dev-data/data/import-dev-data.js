@@ -21,12 +21,25 @@ mongoose
     console.log(err.message);
   });
 
-const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, 'utf-8'));
-const users = JSON.parse(fs.readFileSync(`${__dirname}/users.json`, 'utf-8'));
-const reviews = JSON.parse(
-  fs.readFileSync(`${__dirname}/reviews.json`, 'utf-8')
-);
+let tours = [];
+let users = [];
+let reviews = [];
 
+try {
+  tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, 'utf-8'));
+  users = JSON.parse(fs.readFileSync(`${__dirname}/users.json`, 'utf-8'));
+  reviews = JSON.parse(fs.readFileSync(`${__dirname}/reviews.json`, 'utf-8'));
+} catch (err) {
+  console.error('Error reading JSON files:', err.message);
+  process.exit(1);
+}
+/*
+ * On Render, file system operations (like reading/writing files) are limited.
+ * Make sure your JSON files (tours.json, users.json, reviews.json) are committed to your repo,
+ * and not generated at runtime or written to disk, as Render's file system is ephemeral.
+ * No code changes are needed here if you only read files that are present in your repo.
+ * If you need to write files, use a persistent storage solution (like AWS S3 or a database).
+ */
 const importData = async function () {
   try {
     if (process.argv.includes('--tours')) {
