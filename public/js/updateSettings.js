@@ -9,7 +9,8 @@ export const updateSettings = async function (data, type) {
     return;
   }
   // Create URL
-  const url = `${API_URL}/users/${
+  // const url = `${API_URL}/users/${
+  const url = `/api/v1/users/${
     type === 'data' ? 'updateMe' : 'updateMyPassword'
   }`;
   try {

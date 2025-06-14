@@ -11,7 +11,8 @@ export const login = async function (email, password) {
       password,
     };
     // Create login url
-    const loginUrl = `${API_URL}/users/login`;
+    // const loginUrl = `${API_URL}/users/login`;
+    const loginUrl = `api/v1/users/login`;
     // Send login req to server
     const result = await axios({
       method: 'POST',

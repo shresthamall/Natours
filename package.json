@@ -7,7 +7,7 @@
     "start": "npx nodemon server.js",
     "start:prod": "NODE_ENV=production npx nodemon server.js",
     "debug": "ndb server.js",
-    "build": "npx parcel build public/js/index.js --dist-dir public/dist/",
+    "build": "npx parcel build public/js/index.js --dist-dir public/dist/ --out-file bundle.js",
     "watch:js": "npx parcel watch public/.dist/_index.js",
     "build:js": "npx parcel watch public/js/index.js --out-dir public/js/ --out-file bundle.js --public-url ./"
   },
