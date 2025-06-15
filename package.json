@@ -4,8 +4,8 @@
   "description": "Course project - Backend application",
   "browserslist": "> 0.25%",
   "scripts": {
-    "start": "npx nodemon server.js",
-    "start:prod": "NODE_ENV=production npx nodemon server.js",
+    "start": "NODE_ENV=production npx nodemon server.js",
+    "start:dev": "npx nodemon server.js",
     "debug": "ndb server.js",
     "build": "npx parcel build public/js/index.js --dist-dir public/dist/ --no-cache",
     "watch:js": "npx parcel watch public/.dist/_index.js",
