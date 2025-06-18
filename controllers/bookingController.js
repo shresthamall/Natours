@@ -46,7 +46,9 @@ exports.createCheckoutSession = catchAsync(async function (req, res, next) {
           product_data: {
             name: `${tour.name} Tour`,
             description: tour.summary,
-            images: [`/img/tours/${tour.imageCover}.jpg`],
+            images: [
+              `https://www.natours.dev/img/tours/${tour.imageCover}.jpg`,
+            ],
           },
         },
       },

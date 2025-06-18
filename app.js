@@ -49,6 +49,7 @@ app.use(
           'https://unpkg.com/',
           'https://*.openstreetmap.org/',
           'https://tiles.stadiamaps.com/',
+          'https://imgbox.com/',
         ],
         connectSrc: [
           "'self'",
@@ -62,6 +63,9 @@ app.use(
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   })
 );
+
+// Express trust policy
+app.set('trust proxy', 1);
 
 // Morgan Logger - Logging for development
 if (process.env.NODE_ENV === 'development') {
