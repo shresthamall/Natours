@@ -7,6 +7,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const compression = require('compression');
+const cors = require('cors');
 const { StatusCodes } = require('http-status-codes/build/cjs/status-codes.js');
 
 const AppError = require('./utils/appError');
@@ -27,6 +28,11 @@ app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
 //// GLOBAL MIDDLEWARE FUNCTIONS
+// Implement CORS
+// Allow Requests from all sites - make API available to everyone
+app.use(cors());
+// Handle pre-flight options request from browser for non-simple requests -> Delete, Patch, ...
+app.options(cors());
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
