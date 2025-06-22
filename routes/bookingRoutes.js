@@ -5,10 +5,10 @@ const authController = require('./../controllers/authController');
 // Create tourRouter
 const router = new express.Router();
 
-router.get(
-  '/checkout-session/:tourId',
-  authController.protect,
-  bookingController.createCheckoutSession
-);
+// router.get(
+//   '/checkout-session/:tourId',
+//   authController.protect,
+//   bookingController.createCheckoutSession
+// );
 
 module.exports = router;

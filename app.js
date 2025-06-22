@@ -17,6 +17,7 @@ const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const viewRouter = require('./routes/viewRoutes');
 const bookingRouter = require('./routes/bookingRoutes');
+const bookingController = require('./routes/bookingController');
 const { connect } = require('http2');
 const cookieParser = require('cookie-parser');
 
@@ -86,6 +87,13 @@ const limiter = rateLimit({
 });
 // Limit calls from same API
 app.use('/api', limiter);
+
+// Handle requests from Stripe => Stripe functions used to read this needs the response in stream format, body parser will convert it to JSON.
+app.post(
+  '/webHook-Checkout',
+  express.raw({ type: 'application/json' }),
+  bookingController.webHookCheckout
+);
 
 // Body parser, reading data from body into req.body
 app.use(express.json({ limit: '10kb' }));

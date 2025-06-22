@@ -16,6 +16,8 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
+// Get users tours
+
 const createFilename = (userID) => {
   return `user-${userID}-${Date.now()}.jpeg`;
 };
